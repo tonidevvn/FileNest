@@ -1,0 +1,12 @@
+pip~=25.0
+Django~=5.1.5
+asgiref~=3.8.1
+sqlparse~=0.5.3
+djangorestframework>=3.14
+djangorestframework-simplejwt>=5.3  # For authentication (optional)
+celery>=5.3  # Asynchronous task queue
+redis>=5.0  # Message broker for Celery
+requests>=2.28  # HTTP requests for inter-node communication
+gunicorn>=21.2  # Production WSGI server
+django-cors-headers>=4.0  # Handle Cross-Origin Requests (optional)
+python-dotenv>=1.0  # Manage environment variables
