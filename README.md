@@ -11,9 +11,9 @@ Git (for version control)
 Virtual Environment (venv)
 
 ### Clone the Repository
-
+[Repository link](https://github.com/tonidevvn/FileNest)
 ```
-git clone [Repository link](https://github.com/tonidevvn/FileNest)
+git clone [Repository link]
 cd FileNest
 ```
 
