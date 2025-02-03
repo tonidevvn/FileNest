@@ -10,11 +10,46 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
+import os
 from pathlib import Path
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Enable Query String Authentication for Secure Downloads
+AWS_QUERYSTRING_AUTH = True
+# aws settings
+AWS_ACCESS_KEY_ID = os.getenv('CLOUDFLARE_R2_ACCESS_KEY')
+AWS_SECRET_ACCESS_KEY = os.getenv('CLOUDFLARE_R2_SECRET_KEY')
+AWS_STORAGE_BUCKET_NAME = os.getenv('CLOUDFLARE_R2_BUCKET')
+AWS_S3_REGION_NAME = os.getenv('CLOUDFLARE_R2_BUCKET_REGION', 'enam')
+AWS_DEFAULT_ACL = 'public-read'
+AWS_S3_SIGNATURE_VERSION = 's3v4'
+AWS_S3_CUSTOM_DOMAIN = os.getenv('CLOUDFLARE_R2_BUCKET_ALIAS_HOSTNAME')
+AWS_S3_ENDPOINT_URL = os.getenv('CLOUDFLARE_R2_BUCKET_ENDPOINT')
+AWS_S3_BUCKET_ALIAS = os.getenv('CLOUDFLARE_R2_BUCKET_ALIAS_HOSTNAME')
+AWS_S3_OBJECT_PARAMETERS = {'CacheControl': 'max-age=86400'}
+
+USE_S3 = 'TRUE'
+if USE_S3:
+    # s3 public media settings
+    # PUBLIC_MEDIA_LOCATION = 'media'
+    # MEDIA_URL = f'{AWS_S3_CUSTOM_DOMAIN}/{PUBLIC_MEDIA_LOCATION}/'
+    DEFAULT_FILE_STORAGE = 'helpers.cloudflare.storages.MediaFileStorage'
+else:
+    MEDIA_URL = '/media/'
+    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/5.1/howto/static-files/
+
+STATIC_URL = 'static/'
+STATICFILES_DIRS = (
+  os.path.join(BASE_DIR, 'static/'),
+)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -37,12 +72,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'storage.apps.StorageConfig',
-    'api.apps.ApiConfig',
-    'monitoring.apps.MonitoringConfig',
     # Installed Packages
     'rest_framework',
-    'corsheaders'
+    'corsheaders',
+    'storages',
+    'api',
+    'storage',
+    'monitoring',
+    'upload'
 ]
 
 MIDDLEWARE = [
@@ -118,11 +155,6 @@ USE_I18N = True
 
 USE_TZ = True
 
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.1/howto/static-files/
-
-STATIC_URL = 'static/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
