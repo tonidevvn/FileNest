@@ -17,11 +17,13 @@ Including another URLconf
 from django.conf import settings
 from django.contrib import admin
 from django.urls import path, include
-from upload.views import image_upload
+from upload.views import image_upload, user_login, user_logout
 from django.conf.urls.static import static
+from django.contrib.auth.views import LogoutView
 
 urlpatterns = ([
+    path('login/', user_login, name='login'),
+    path('logout/', user_logout, name='logout'),
     path('', image_upload, name='upload'),
-    path('api/', include('api.urls')),
     path('admin/', admin.site.urls),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT))

@@ -2,11 +2,11 @@ from storages.backends.s3boto3 import S3Boto3Storage
 import helpers.storages.mixins as mixins
 
 
-class CloudflareStorage(S3Boto3Storage):
+class CloudStorage(S3Boto3Storage):
     pass
 
 
-class StaticFileStorage(mixins.DefaultACLMixin, CloudflareStorage):
+class StaticFileStorage(mixins.DefaultACLMixin, CloudStorage):
     """
     For staticfiles
     """
@@ -15,7 +15,7 @@ class StaticFileStorage(mixins.DefaultACLMixin, CloudflareStorage):
     default_acl = "public-read"
 
 
-class MediaFileStorage(mixins.DefaultACLMixin, CloudflareStorage):
+class MediaFileStorage(mixins.DefaultACLMixin, CloudStorage):
     """
     For general uploads
     """
@@ -24,7 +24,7 @@ class MediaFileStorage(mixins.DefaultACLMixin, CloudflareStorage):
     default_acl = "public-read"
 
 
-class ProtectedMediaStorage(mixins.DefaultACLMixin, CloudflareStorage):
+class ProtectedMediaStorage(mixins.DefaultACLMixin, CloudStorage):
     """
     For user private uploads
     """

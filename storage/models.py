@@ -16,7 +16,7 @@ class FileMetadata(models.Model):
     """Stores metadata of uploaded files."""
     file_name = models.CharField(max_length=255)
     file_hash = models.CharField(max_length=64, unique=True)  # SHA-256 for deduplication
-    total_chunks = models.IntegerField()
+    total_chunks = models.IntegerField(default=0)
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -27,7 +27,6 @@ class FileChunk(models.Model):
     file = models.ForeignKey(FileMetadata, on_delete=models.CASCADE, related_name="chunks")
     chunk_index = models.IntegerField()
     chunk_hash = models.CharField(max_length=64, unique=True)
-    s3_key = models.CharField(max_length=255)  # S3 Object Key
 
     def __str__(self):
         return f"Chunk {self.chunk_index} of {self.file.file_name}"

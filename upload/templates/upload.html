@@ -6,7 +6,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link rel="shortcut icon" type="image/png" href="{% static 'images/favicon.png' %}">
-    <title>Image Upload</title>
+    <title>FileNest - Image Upload</title>
     <link rel="stylesheet" href="{% static 'bulma.min.css' %}">
   </head>
   <body>
@@ -39,6 +39,19 @@
         {% if image_url %}
           <p>File uploaded at: <a href="{{ image_url }}">{{ image_url }}</a></p>
         {% endif %}
+
+
+        {% if uploads.count > 0 %}
+            <h2>Your Uploaded Files</h2>
+            <ul>
+                {% for upload in uploads %}
+                    <li><a href="{{ upload.file.url }}">{{ upload.file.name }}</a> (Uploaded by: {{ upload.uploaded_by.username }})</li>
+                {% empty %}
+                    <p>No files available.</p>
+                {% endfor %}
+            </ul>
+        {% endif %}
+        <a href="{% url 'logout' %}">Logout</a>
       </div>
     </div>
   </body>

@@ -8,8 +8,8 @@ class FileMetadataAdmin(admin.ModelAdmin):
 
 @admin.register(FileChunk)
 class FileChunkAdmin(admin.ModelAdmin):
-    list_display = ("file", "chunk_index", "chunk_hash", "s3_key")
-    search_fields = ("chunk_hash", "s3_key")
+    list_display = ("file", "chunk_index", "chunk_hash")
+    search_fields = ("chunk_index", "chunk_hash")
 
 @admin.register(StorageNode)
 class StorageNodeAdmin(admin.ModelAdmin):
