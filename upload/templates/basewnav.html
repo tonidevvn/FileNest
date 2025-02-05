@@ -1,0 +1,31 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+       <title>FileNest - {% block title %}{% endblock %}</title>
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+</head>
+<body class="bg-gray-100">
+    <nav class="bg-blue-500 p-4 shadow-lg">
+        <div class="container mx-auto flex justify-between items-center">
+            <a href="/" class="text-white text-lg font-bold">FileNest</a>
+            <div>
+                <a href="{% url 'upload' %}" class="text-white px-4">Upload</a>
+                <a href="{% url 'logout' %}" class="text-white px-4">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <section class="container mx-auto py-8">
+        {% block content %}{% endblock %}
+    </section>
+
+    <footer class="bg-gray-800 text-white text-center py-4 mt-8">
+        <p>&copy; 2025 FileNest. All rights reserved.</p>
+    </footer>
+</body>
+</html>
