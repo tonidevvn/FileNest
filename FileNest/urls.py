@@ -17,7 +17,7 @@ Including another URLconf
 from django.conf import settings
 from django.contrib import admin
 from django.urls import path, include, re_path
-from upload.views import image_upload, user_login, user_logout
+from upload.views import image_upload, user_login, user_logout, delete_file
 from django.conf.urls.static import static
 from django.contrib.auth.views import LogoutView
 from api.views import *
@@ -27,8 +27,8 @@ urlpatterns = ([
     path('logout/', user_logout, name='logout'),
     path('', image_upload, name='upload'),
     path('admin/', admin.site.urls),
+    path('delete/<str:file_key>/', delete_file, name='delete_file'),
     re_path('api/signup', signup),
     re_path('api/login', login),
     re_path('api/test_token', test_token),
-    re_path('api/hello', test_hello),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT))

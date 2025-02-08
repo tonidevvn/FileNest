@@ -17,12 +17,23 @@
             </div>
             <div class="field">
                 <div class="control text-center">
-                    <input type="submit" value="Submit" class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-700">
+                    <input type="submit" value="Submit" class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-700 cursor-pointer">
                 </div>
             </div>
         </form>
         {% if image_url %}
-        <p class="text-center text-green-500 mt-4">File uploaded at: <a href="{{ image_url }}" class="text-blue-500 underline">{{ image_url }}</a></p>
+        <p id="file_uploaded_msg" class="text-center text-green-500 mt-4" onload="uploadedFile()">File uploaded at: <a href="{{ image_url }}" class="text-blue-500 underline" >{{ image_url }}</a></p>
+        <script>
+            document.addEventListener("DOMContentLoaded", (event) => {
+                console.log("hello")
+                Toastify({
+                    text: "File uploaded successfully!",
+                    className: "info",
+                    duration: 3000,
+                    gravity: "bottom", // `top` or `bottom`
+                }).showToast();
+            });
+        </script>
         {% endif %}
 
         {% if uploads.count > 0 %}
@@ -35,16 +46,20 @@
                     <th class="border border-gray-300 px-4 py-2">File Size</th>
                     <th class="border border-gray-300 px-4 py-2">Uploaded By</th>
                     <th class="border border-gray-300 px-4 py-2">Uploaded At</th>
+                    <th class="border border-gray-300 px-4 py-2">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 {% for upload in uploads %}
-                <tr class="bg-white">
+                <tr id="file-row-{{ upload.file_key }}" class="bg-white">
                     <td class="border border-gray-300 px-4 py-2">{{ forloop.counter }}</td>
                     <td class="border border-gray-300 px-4 py-2"><a href="{{ upload.file.url }}" class="text-blue-500 underline">{{ upload.file.name }}</a></td>
                     <td class="border border-gray-300 px-4 py-2">{{ upload.file_size }}</td>
                     <td class="border border-gray-300 px-4 py-2">{{ upload.uploaded_by.username }}</td>
                     <td class="border border-gray-300 px-4 py-2">{{ upload.uploaded_at }}</td>
+                    <td class="border border-gray-300 px-4 py-2">
+                        <button onclick="deleteFile('{{ upload.file_key }}', 'file-row-{{ upload.file_key }}')" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-700">Delete</button>
+                    </td>
                 </tr>
                 {% empty %}
                 <tr>
@@ -53,6 +68,35 @@
                 {% endfor %}
             </tbody>
         </table>
+        <script>
+            function deleteFile(fileKey, rowId) {
+                if (confirm("Are you sure you want to delete this file?")) {
+                    fetch(`/delete/${fileKey}/`, {
+                        method: "POST",
+                        headers: {
+                            "X-CSRFToken": "{{ csrf_token }}",
+                        },
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.message) {
+                            Toastify({
+                                text: "File deleted successfully!",
+                                className: "info",
+                                duration: 3000,
+                                gravity: "bottom", // `top` or `bottom`
+                            }).showToast();
+
+                            // Wait for 500ms before refreshing the page
+                            setTimeout(() => document.getElementById(rowId).remove(), 500);
+                        } else {
+                            alert("Error: " + data.error);
+                        }
+                    })
+                    .catch(error => console.error("Error deleting file:", error));
+                }
+            }
+        </script>
         {% endif %}
     </div>
 </div>

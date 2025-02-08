@@ -1,31 +1,42 @@
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
 from .models import FileMetadata
 
 @login_required(login_url='/login/')
 def image_upload(request):
-    if request.user.is_staff:  # Allow admin members to see all files
-        uploads = FileMetadata.objects.all()
-    else:  # Regular users see only their own uploads
-        uploads = FileMetadata.objects.filter(uploaded_by=request.user)
-
+    """Handles file upload and ensures the file list updates correctly."""
+    image_url = ""
     if request.method == 'POST':
-        image_file = request.FILES['image_file']
-        upload = FileMetadata(file=image_file, uploaded_by=request.user)
-        upload.save()
-        if settings.USE_S3:
+        image_file = request.FILES.get('image_file')
+        if image_file:
+            upload = FileMetadata(file=image_file, uploaded_by=request.user)
+            upload.save()
             image_url = upload.file.url
-        else:
-            fs = FileSystemStorage()
-            filename = fs.save(image_file.name, image_file)
-            image_url = fs.url(filename)
-        return render(request, 'upload.html', {
-            'image_url': image_url, 'uploads': uploads
-        })
-    return render(request, 'upload.html', {'uploads': uploads})
+
+    # Refresh the file list after any operation
+    uploads = FileMetadata.objects.all() if request.user.is_staff else FileMetadata.objects.filter(
+        uploaded_by=request.user)
+    return render(request, 'upload.html', {'image_url': image_url, 'uploads': uploads})
+
+@login_required(login_url='/login/')
+def delete_file(request, file_key):
+    """Deletes a file from the database and cloud storage."""
+    file_obj = get_object_or_404(FileMetadata, file_key=file_key)
+
+    if file_obj.uploaded_by != request.user and not request.user.is_staff:
+        return JsonResponse({"error": "Unauthorized"}, status=403)
+
+    file_name = file_obj.file.name
+    # Confirm file is removed before deleting from DB
+    if not file_obj.file.storage.exists(file_name):
+        file_obj.delete()
+        return JsonResponse({"message": "File deleted successfully"}, status=200)
+    else:
+        return JsonResponse({"error": "File could not be deleted from storage"}, status=500)
 
 def user_login(request):
     if request.method == "POST":
