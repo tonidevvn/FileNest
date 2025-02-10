@@ -23,6 +23,13 @@ def image_upload(request):
     return render(request, 'upload.html', {'image_url': image_url, 'uploads': uploads})
 
 @login_required(login_url='/login/')
+def load_storage(request):
+    # Refresh the file list after any operation
+    uploads = FileMetadata.objects.all() if request.user.is_staff else FileMetadata.objects.filter(
+        uploaded_by=request.user)
+    return render(request, 'storage.html', {'uploads': uploads})
+
+@login_required(login_url='/login/')
 def delete_file(request, file_key):
     """Deletes a file from the database and cloud storage."""
     file_obj = get_object_or_404(FileMetadata, file_key=file_key)

@@ -9,7 +9,7 @@
     <title>FileNest - {% block title %}{% endblock %}</title>
     <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
-
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 <body class="bg-gray-100">
     <nav class="bg-blue-500 p-4 shadow-lg">
@@ -17,6 +17,7 @@
             <a href="/" class="text-white text-lg font-bold">FileNest</a>
             <div>
                 <a href="{% url 'upload' %}" class="text-white px-4">Upload</a>
+                <a href="{% url 'storage' %}" class="text-white px-4">Storage</a>
                 <a href="{% url 'logout' %}" class="text-white px-4">Logout</a>
             </div>
         </div>

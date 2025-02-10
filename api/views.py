@@ -3,71 +3,15 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.authtoken.models import Token
 from rest_framework import status
 
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import User
-from rest_framework.authtoken.models import Token
 
 from .serializers import UserSerializer
-from storage.models import FileMetadata, FileChunk
-from storage.utils import chunk_file, upload_chunk_to_s3
-
-class FileUploadView(APIView):
-    """Uploads file, splits it into chunks, and stores in AWS S3."""
-
-    def post(self, request):
-        file = request.FILES.get("file")
-        if not file:
-            return Response({"error": "No file uploaded"}, status=400)
-
-        file_metadata = FileMetadata.objects.create(
-            file_name=file.name,
-            file_hash=hash(file),  # Hash entire file for deduplication
-            total_chunks=0
-        )
-
-        chunks = chunk_file(file)
-
-        for index, chunk_data, chunk_hash in chunks:
-            s3_key = f"chunks/{file_metadata.file_hash}/{index}.chunk"
-            upload_chunk_to_s3(chunk_data, s3_key)
-
-            FileChunk.objects.create(
-                file=file_metadata,
-                chunk_index=index,
-                chunk_hash=chunk_hash,
-                s3_key=s3_key
-            )
-
-        file_metadata.total_chunks = len(chunks)
-        file_metadata.save()
-
-        return Response({"message": "File uploaded in chunks", "file_hash": file_metadata.file_hash}, status=201)
-
-class FileDownloadView(APIView):
-    """Reconstructs and serves the file from S3 chunks."""
-
-    def get(self, request, file_hash):
-        file_meta = get_object_or_404(FileMetadata, file_hash=file_hash)
-        file_chunks = FileChunk.objects.filter(file=file_meta).order_by("chunk_index")
-
-        s3_client = boto3.client(
-            's3',
-            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-            region_name=settings.AWS_S3_REGION_NAME
-        )
-
-        reconstructed_file = b""
-        for chunk in file_chunks:
-            chunk_obj = s3_client.get_object(Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key=chunk.s3_key)
-            reconstructed_file += chunk_obj['Body'].read()
-
-        response = Response(reconstructed_file, content_type="application/octet-stream")
-        response['Content-Disposition'] = f'attachment; filename="{file_meta.file_name}"'
-        return response
-
+from .serializers import FileMetadataSerializer  # You need to create this serializer
+from upload.models import FileMetadata
 
 @api_view(['POST'])
 def signup(request):
@@ -94,4 +38,55 @@ def login(request):
 @authentication_classes([SessionAuthentication, TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def test_token(request):
-    return Response("passed!")
+    user = request.user  # Authenticated user from token
+    serializer = UserSerializer(user)
+    return Response({
+        "message": "Token is valid",
+        "user": serializer.data
+    }, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+@authentication_classes([SessionAuthentication, TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def api_upload_file(request):
+    """API to upload a file for authenticated users."""
+    if 'image_file' not in request.FILES:
+        return Response({"error": "No file provided"}, status=status.HTTP_400_BAD_REQUEST)
+
+    image_file = request.FILES['image_file']
+    upload = FileMetadata(file=image_file, uploaded_by=request.user)
+    upload.save()
+
+    return Response({
+        "message": "File uploaded successfully",
+        "file_key": upload.file_key,
+        "file_url": upload.file.url,
+        "uploaded_by": upload.uploaded_by.username,
+        "uploaded_at": upload.uploaded_at
+    }, status=status.HTTP_201_CREATED)
+
+@api_view(['DELETE'])
+@authentication_classes([SessionAuthentication, TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def api_delete_file(request, file_key):
+    try:
+        """API to delete a file for authorized users only."""
+        file_obj = get_object_or_404(FileMetadata, file_key=file_key)
+
+        if file_obj.uploaded_by != request.user and not request.user.is_staff:
+            return Response({"error": "Unauthorized"}, status=status.HTTP_403_FORBIDDEN)
+
+        file_obj.delete()
+        return Response({"message": "File deleted successfully"}, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({"error": "File could not be deleted from storage"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['GET'])
+@authentication_classes([SessionAuthentication, TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def api_list_files(request):
+    """API to list all uploaded files for the authenticated user."""
+    uploads = FileMetadata.objects.filter(uploaded_by=request.user) if not request.user.is_staff else FileMetadata.objects.all()
+    serializer = FileMetadataSerializer(uploads, many=True)
+    return Response({ "message": "List of uploaded files", "files_count": len(serializer.data), "files": serializer.data}, status=status.HTTP_200_OK)
