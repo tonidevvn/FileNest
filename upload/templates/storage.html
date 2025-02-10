@@ -30,10 +30,13 @@
                     <td class="border border-gray-300 px-4 py-2">{{ upload.uploaded_by.username }}</td>
                     <td class="border border-gray-300 px-4 py-2">{{ upload.uploaded_at }}</td>
                     <td class="border border-gray-300 px-4 py-2">
-                        <button onclick="deleteFile('{{ upload.file_key }}', 'file-row-{{ upload.file_key }}')" class="cursor-pointer w-12 bg-red-500 text-white px-3 py-1 rounded hover:bg-red-700"><i class="fa fa-trash-o" aria-hidden="true"></i>
-</button>
-                        <button onclick="downloadFile('{{ upload.file.url }}', '{{ upload.file.name }}')" class="cursor-pointer w-12 bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"><i class="fa fa-cloud-download" aria-hidden="true"></i>
-</button>
+                        <button onclick="downloadFile('{{ upload.file.url }}', '{{ upload.file.name }}')" class="cursor-pointer w-12 bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">
+                            <i class="fa fa-cloud-download" aria-hidden="true"></i>
+                        </button>
+                        <button onclick="deleteFile('{{ upload.file_key }}', 'file-row-{{ upload.file_key }}')" class="cursor-pointer w-12 bg-red-500 text-white px-3 py-1 rounded hover:bg-red-700">
+                            <i class="fa fa-trash-o" aria-hidden="true"></i>
+                        </button>
+
                     </td>
                 </tr>
                 {% empty %}
