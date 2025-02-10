@@ -11,6 +11,7 @@ class FileMetadataSerializer(serializers.ModelSerializer):
     file_name = serializers.SerializerMethodField()
     file_size = serializers.SerializerMethodField()
     file_url = serializers.SerializerMethodField()
+    uploaded_by = serializers.SerializerMethodField()
 
     class Meta(object):
         model = FileMetadata
@@ -30,4 +31,10 @@ class FileMetadataSerializer(serializers.ModelSerializer):
         """Return the full URL of the file (works for S3 and local storage)."""
         if obj.file:
             return obj.file.size
+        return 0
+
+    def get_uploaded_by(self, obj):
+        """Return the owner of the file."""
+        if obj.uploaded_by:
+            return obj.uploaded_by.username
         return 0
