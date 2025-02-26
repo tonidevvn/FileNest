@@ -20,7 +20,6 @@ from django.urls import path, include
 from upload.views import *
 from api.views import *
 from django.conf.urls.static import static
-from django.contrib.auth.views import LogoutView
 from api.views import *
 
 urlpatterns = ([
@@ -28,12 +27,7 @@ urlpatterns = ([
     path('storage', load_storage, name='storage'),
     path('login/', user_login, name='login'),
     path('logout/', user_logout, name='logout'),
-    path('admin/', admin.site.urls),
     path('delete/<str:file_key>/', delete_file, name='delete_file'),
-    path('api/signup', signup),
-    path('api/login', login),
-    path('api/test_token', test_token),
-    path('api/upload/', api_upload_file, name='api_upload_file'),
-    path('api/delete/<str:file_key>/', api_delete_file, name='api_delete_file'),
-    path('api/storage/', api_list_files, name='api_list_files'),
+    path('admin/', admin.site.urls),
+    path('api/', include('api.urls')),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT))

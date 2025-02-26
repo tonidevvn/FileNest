@@ -19,19 +19,15 @@ class FileMetadataSerializer(serializers.ModelSerializer):
 
     def get_file_name(self, obj):
         """Return the name of the file."""
-        return obj.file.name if obj.file else None
+        return obj.file_name
 
     def get_file_url(self, obj):
         """Return the full URL of the file (works for S3 and local storage)."""
-        if obj.file:
-            return obj.file.url
-        return None
+        return obj.file_url
 
     def get_file_size(self, obj):
         """Return the full URL of the file (works for S3 and local storage)."""
-        if obj.file:
-            return obj.file.size
-        return 0
+        return obj.file_size
 
     def get_uploaded_by(self, obj):
         """Return the owner of the file."""

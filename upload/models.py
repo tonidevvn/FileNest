@@ -1,17 +1,29 @@
-import os
-
 from django.db import models
 import uuid
 from django.contrib.auth.models import User
+from django.core.files.storage import FileSystemStorage
 from helpers.cloudflare.storages import MediaFileStorage
 from helpers.storages.filestat import convert_size
+from django.conf import settings
 
 def image_file_upload_handler(instance, filename):
     """Generates a unique file path using UUID."""
     return f"{instance.file_key}-{filename}"
 
+# Define a local storage instance
+local_storage = FileSystemStorage(location=settings.LOCAL_STORAGE_URL)
+
 class FileMetadata(models.Model):
-    file = models.FileField(storage=MediaFileStorage(), null=True, blank=True, upload_to=image_file_upload_handler)
+    STORAGE_CHOICES_LOCAL = 'local'
+    STORAGE_CHOICES_CLOUD = 'cloud'
+
+    STORAGE_CHOICES = [
+        (STORAGE_CHOICES_LOCAL, 'Local Storage'),
+        (STORAGE_CHOICES_CLOUD, 'Cloud Storage'),
+    ]
+
+    file_cloud = models.FileField(storage= MediaFileStorage(), null=True, blank=True, upload_to=image_file_upload_handler)
+    file_localhost = models.FileField(storage= local_storage, null=True, blank=True, upload_to=image_file_upload_handler)
     file_key = models.CharField(
         max_length=36,
         unique=True,
@@ -19,27 +31,52 @@ class FileMetadata(models.Model):
     )  # Unique identifier for cloud storage
     uploaded_by = models.ForeignKey(User, on_delete=models.CASCADE)
     uploaded_at = models.DateTimeField(auto_now_add=True)
+    storage_type = models.CharField(
+        max_length=10, choices=STORAGE_CHOICES, default='cloud'
+    )  # Determines whether to use local or cloud storage
 
     @property
     def file_size(self):
-        try:
-            filesize = self.file.size
-        except OSError:
-            filesize = 0
+        filesize = 0
+        """Returns the correct file size based on storage type."""
+        if self.storage_type == FileMetadata.STORAGE_CHOICES_CLOUD and self.file_cloud:
+            filesize = self.file_cloud.size
+        elif self.storage_type == FileMetadata.STORAGE_CHOICES_LOCAL and self.file_localhost:
+            filesize = self.file_localhost.size
         return convert_size(filesize)
 
+    @property
+    def file_url(self):
+        """Returns the correct file URL based on storage type."""
+        if self.storage_type == FileMetadata.STORAGE_CHOICES_CLOUD and self.file_cloud:
+            return self.file_cloud.url
+        elif self.storage_type == FileMetadata.STORAGE_CHOICES_LOCAL and self.file_localhost:
+            return f"{settings.LOCAL_STORAGE_URL}{self.file_localhost.name}"  # Generate correct local file path
+        return None
+
+    @property
+    def file_name(self):
+        """Returns the correct file name based on storage type."""
+        if self.storage_type == FileMetadata.STORAGE_CHOICES_CLOUD and self.file_cloud:
+            return self.file_cloud.name
+        elif self.storage_type == FileMetadata.STORAGE_CHOICES_LOCAL and self.file_localhost:
+            return self.file_localhost.name
+        return None
+
     def __str__(self):
-        return f"File {self.file.name} size of {self.file.size} bytes uploaded by {self.uploaded_by.username} at {self.uploaded_at}"
+        return f"File {self.file_name} size of {self.file_size} bytes uploaded by {self.uploaded_by.username} at {self.uploaded_at}"
 
     def save(self, *args, **kwargs):
         """Ensure file size and file_key are set before saving."""
         if not self.file_key:
             self.file_key = str(uuid.uuid1())  # Ensure file_key is generated
-        super().save(*args, **kwargs)
 
+        super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
         """Delete file from cloud storage before removing the record."""
-        if self.file:
-            self.file.delete(save=False) # Remove file from cloud storage
+        if self.storage_type == FileMetadata.STORAGE_CHOICES_CLOUD and self.file_cloud:
+            self.file_cloud.delete(save=False) # Remove file from cloud storage
+        elif self.storage_type == FileMetadata.STORAGE_CHOICES_LOCAL and self.file_localhost:
+            self.file_localhost.delete(save=False)
         super().delete(*args, **kwargs)  # Delete database record

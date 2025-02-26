@@ -3,8 +3,8 @@
 {% block title %}Upload{% endblock %}
 
 {% block content %}
-<div class="min-h-screen flex items-center justify-center">
-    <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-max">
+<div class="min-h-115 mt-4 md:mt-8 flex items-center justify-center">
+    <div class="bg-white p-8 rounded-lg shadow-lg w-full min-w-2/3 max-w-max">
         <h2 class="text-2xl font-bold mb-6 text-center">Upload Your File</h2>
         <hr class="mb-4">
         <form action="{% url 'upload' %}" method="post" enctype="multipart/form-data" class="space-y-4">
@@ -16,13 +16,22 @@
                 </div>
             </div>
             <div class="field">
+                <div class="control">
+                    <label for="storage_type" class="block text-gray-700 font-semibold">Choose Storage Type:</label>
+                    <select name="storage_type" id="storage_type" class="p-2 border border-gray-300 rounded">
+                        <option value="cloud">Cloud Storage</option>
+                        <option value="local">Local Storage</option>
+                    </select>
+                </div>
+            </div>
+            <div class="field">
                 <div class="control text-center">
                     <input type="submit" value="Submit" class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-700 cursor-pointer">
                 </div>
             </div>
         </form>
         {% if image_url %}
-        <p id="file_uploaded_msg" class="text-center text-green-500 mt-4" onload="uploadedFile()">File uploaded at: <a href="{{ image_url }}" class="text-blue-500 underline" >{{ image_url }}</a></p>
+        <p id="file_uploaded_msg" class="text-center text-green-500 mt-4">File uploaded at: <a href="{{ image_url }}" class="text-blue-500 underline" >{{ image_url }}</a></p>
         <script>
             document.addEventListener("DOMContentLoaded", (event) => {
                 Toastify({

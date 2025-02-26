@@ -3,7 +3,7 @@
 {% block title %}Object Storage{% endblock %}
 
 {% block content %}
-<div class="min-h-screen flex items-center justify-center">
+<div class="min-h-115 mt-4 md:mt-8 flex items-center justify-center">
     <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-max">
         <h2 class="text-2xl font-bold mb-6 text-center">Object Storage</h2>
         <hr class="mb-4">
@@ -16,6 +16,7 @@
                     <th class="border border-gray-300 px-4 py-2">No</th>
                     <th class="border border-gray-300 px-4 py-2">File Name</th>
                     <th class="border border-gray-300 px-4 py-2">File Size</th>
+                    <th class="border border-gray-300 px-4 py-2">Server</th>
                     <th class="border border-gray-300 px-4 py-2">Uploaded By</th>
                     <th class="border border-gray-300 px-4 py-2">Uploaded At</th>
                     <th class="border border-gray-300 px-4 py-2">Actions</th>
@@ -25,12 +26,19 @@
                 {% for upload in uploads %}
                 <tr id="file-row-{{ upload.file_key }}" class="bg-white">
                     <td class="border border-gray-300 px-4 py-2">{{ forloop.counter }}</td>
-                    <td class="border border-gray-300 px-4 py-2"><a href="{{ upload.file.url }}" class="text-blue-500 underline">{{ upload.file.name }}</a></td>
+                    <td class="border border-gray-300 px-4 py-2"><a href="{{ upload.file_url }}" class="text-blue-500 underline">{{ upload.file_name }}</a></td>
                     <td class="border border-gray-300 px-4 py-2">{{ upload.file_size }}</td>
+                    <td class="border border-gray-300 px-4 py-2">
+                        {% if upload.storage_type == 'cloud' %}
+                    	    <i class="fa fa-cloud" aria-hidden="true"></i> <strong>R2</strong>
+                        {% else %}
+                            <i class="fa fa-hdd-o" aria-hidden="true"></i> <strong>localhost</strong>
+                        {% endif %}
+                    </td>
                     <td class="border border-gray-300 px-4 py-2">{{ upload.uploaded_by.username }}</td>
                     <td class="border border-gray-300 px-4 py-2">{{ upload.uploaded_at }}</td>
                     <td class="border border-gray-300 px-4 py-2">
-                        <button onclick="downloadFile('{{ upload.file.url }}', '{{ upload.file.name }}')" class="cursor-pointer w-12 bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">
+                        <button onclick="downloadFile('{{ upload.file_url }}', '{{ upload.file_name }}')" class="cursor-pointer w-12 bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">
                             <i class="fa fa-cloud-download" aria-hidden="true"></i>
                         </button>
                         <button onclick="deleteFile('{{ upload.file_key }}', 'file-row-{{ upload.file_key }}')" class="cursor-pointer w-12 bg-red-500 text-white px-3 py-1 rounded hover:bg-red-700">

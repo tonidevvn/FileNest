@@ -11,7 +11,7 @@
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
-<body class="bg-gray-100">
+<body class="bg-gray-100 relative min-h-screen">
     <nav class="bg-blue-500 p-4 shadow-lg">
         <div class="container mx-auto flex justify-between items-center">
             <a href="/" class="text-white text-lg font-bold">FileNest</a>
@@ -27,7 +27,7 @@
         {% block content %}{% endblock %}
     </section>
 
-    <footer class="bg-gray-800 text-white text-center py-4 mt-8">
+    <footer class="bg-gray-800 text-white text-center py-4 mt-8 absolute bottom-0 left-0 right-0">
         <p>&copy; 2025 FileNest. All rights reserved.</p>
     </footer>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>

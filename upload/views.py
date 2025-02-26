@@ -1,10 +1,8 @@
-from django.conf import settings
-from django.core.files.storage import FileSystemStorage
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
-from .models import FileMetadata
+from .models import FileMetadata, local_storage, MediaFileStorage
 
 @login_required(login_url='/login/')
 def image_upload(request):
@@ -12,10 +10,22 @@ def image_upload(request):
     image_url = ""
     if request.method == 'POST':
         image_file = request.FILES.get('image_file')
+        storage_type = request.POST.get('storage_type', 'cloud')  # Default to cloud storage
+
         if image_file:
-            upload = FileMetadata(file=image_file, uploaded_by=request.user)
+            upload = FileMetadata(uploaded_by=request.user,
+                                  storage_type=storage_type)
+
+            # Upload file to the correct storage field
+            if storage_type == 'cloud':
+                upload.file_cloud = image_file  # Store file in Cloud Storage
+                upload.file_localhost = None  # Ensure the local field is empty
+            else:
+                upload.file_localhost = image_file  # Store file in Local Storage
+                upload.file_cloud = None  # Ensure the cloud field is empty
+
             upload.save()
-            image_url = upload.file.url
+            image_url = upload.file_url
 
     # Refresh the file list after any operation
     uploads = FileMetadata.objects.all() if request.user.is_staff else FileMetadata.objects.filter(
@@ -37,9 +47,8 @@ def delete_file(request, file_key):
     if file_obj.uploaded_by != request.user and not request.user.is_staff:
         return JsonResponse({"error": "Unauthorized"}, status=403)
 
-    file_name = file_obj.file.name
     # Confirm file is removed before deleting from DB
-    if not file_obj.file.storage.exists(file_name):
+    if file_obj.file_cloud or file_obj.file_localhost:
         file_obj.delete()
         return JsonResponse({"message": "File deleted successfully"}, status=200)
     else:
