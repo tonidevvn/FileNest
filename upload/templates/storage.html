@@ -27,7 +27,7 @@
                 <tr id="file-row-{{ upload.file_key }}" class="bg-white">
                     <td class="border border-gray-300 px-4 py-2">{{ forloop.counter }}</td>
                     <td class="border border-gray-300 px-4 py-2"><a href="{{ upload.file_url }}" class="text-blue-500 underline">{{ upload.file_name }}</a></td>
-                    <td class="border border-gray-300 px-4 py-2">{{ upload.file_size }}</td>
+                    <td class="border border-gray-300 px-4 py-2">{{ upload.file_size_str }}</td>
                     <td class="border border-gray-300 px-4 py-2">
                         {% if upload.storage_type == 'cloud' %}
                     	    <i class="fa fa-cloud" aria-hidden="true"></i> <strong>R2</strong>
@@ -44,7 +44,12 @@
                         <button onclick="deleteFile('{{ upload.file_key }}', 'file-row-{{ upload.file_key }}')" class="cursor-pointer w-12 bg-red-500 text-white px-3 py-1 rounded hover:bg-red-700">
                             <i class="fa fa-trash-o" aria-hidden="true"></i>
                         </button>
-
+                        {% if upload.is_chunked %}
+                            <button onclick="window.location.href='{% url 'view_chunks' upload.file_key %}'"
+                                    class="cursor-pointer w-12 bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600">
+                                <i class="fa fa-th-list" aria-hidden="true"></i>
+                            </button>
+                        {% endif %}
                     </td>
                 </tr>
                 {% empty %}

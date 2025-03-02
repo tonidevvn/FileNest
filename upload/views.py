@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
-from .models import FileMetadata, local_storage, MediaFileStorage
+from .models import FileMetadata, FileChunk
 
 @login_required(login_url='/login/')
 def image_upload(request):
@@ -38,6 +38,16 @@ def load_storage(request):
     uploads = FileMetadata.objects.all() if request.user.is_staff else FileMetadata.objects.filter(
         uploaded_by=request.user)
     return render(request, 'storage.html', {'uploads': uploads})
+
+@login_required(login_url='/login/')
+def view_chunks(request, file_key):
+    """Displays chunk details for a specific file."""
+    file_metadata = get_object_or_404(FileMetadata, file_key=file_key)
+
+    # Fetch chunks related to this file
+    chunks = FileChunk.objects.filter(file_metadata=file_metadata).order_by('chunk_index')
+
+    return render(request, 'chunks.html', {'file_metadata': file_metadata, 'chunks': chunks})
 
 @login_required(login_url='/login/')
 def delete_file(request, file_key):

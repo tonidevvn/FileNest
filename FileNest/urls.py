@@ -25,6 +25,7 @@ from api.views import *
 urlpatterns = ([
     path('', image_upload, name='upload'),
     path('storage', load_storage, name='storage'),
+    path('storage/chunks/<uuid:file_key>/', view_chunks, name='view_chunks'),
     path('login/', user_login, name='login'),
     path('logout/', user_logout, name='logout'),
     path('delete/<str:file_key>/', delete_file, name='delete_file'),

@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}File Chunks - {{ file_metadata.file_name }}{% endblock %}
+
+{% block content %}
+<div class="min-h-115 mt-4 md:mt-8 flex items-center justify-center">
+    <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-max">
+        <h2 class="text-2xl font-bold mb-6 text-center">Chunk Details</h2>
+        <hr class="mb-4">
+
+        <h3 class="text-lg font-semibold">File: {{ file_metadata.file_name }}</h3>
+        <p class="text-gray-600">Storage Type: 
+            {% if file_metadata.storage_type == 'cloud' %}
+                <i class="fa fa-cloud" aria-hidden="true"></i> <strong>R2</strong>
+            {% else %}
+                <i class="fa fa-hdd-o" aria-hidden="true"></i> <strong>localhost</strong>
+            {% endif %}
+        </p>
+        <p class="text-gray-600">Total Chunks: {{ file_metadata.total_chunks }}</p>
+
+        {% if chunks %}
+        <table class="table-auto w-full mt-4 border-collapse border border-gray-300">
+            <thead>
+                <tr class="bg-gray-200">
+                    <th class="border border-gray-300 px-4 py-2">Chunk No</th>
+                    <th class="border border-gray-300 px-4 py-2">Chunk Name</th>
+                    <th class="border border-gray-300 px-4 py-2">Size</th>
+                    <th class="border border-gray-300 px-4 py-2">Uploaded At</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for chunk in chunks %}
+                <tr>
+                    <td class="border border-gray-300 px-4 py-2">{{ chunk.chunk_index }}</td>
+                    <td class="border border-gray-300 px-4 py-2">{{ chunk.chunk_file.name }}</td>
+                    <td class="border border-gray-300 px-4 py-2">{{ chunk.chunk_file.size|filesizeformat }}</td>
+                    <td class="border border-gray-300 px-4 py-2">{{ chunk.uploaded_at }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="border border-gray-300 px-4 py-2 text-center">No chunks found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+            <p class="text-center text-gray-500">No chunk data available for this file.</p>
+        {% endif %}
+
+        <div class="text-center mt-6">
+            <a href="{% url 'storage' %}" class="text-blue-500 underline">Back to Storage</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
