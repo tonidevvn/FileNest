@@ -8,24 +8,27 @@
         <h2 class="text-2xl font-bold mb-6 text-center">📎 Object Info</h2>
         <hr class="mb-4">
 
-        <p class="font-semibold">Name: {{ file_metadata.file_name }}</p>
-        <p class="font-semibold ">Storage Location:
+        <p class="font-semibold my-2">Name: {{ file_metadata.file_name }}</p>
+        <p class="font-semibold my-2">Location:
             <span class="text-gray-600">
                 <i class="fa fa-hdd-o" aria-hidden="true"></i> <strong>Minio</strong>
             </span>
         </p>
-        <p class="font-semibold">Size:
+        <p class="font-semibold my-2">Size:
             <span class="text-gray-600">{{ file_metadata.file_size |filesizeformat }}</span>
         </p>
-        <p class="font-semibold">Uploaded By:
+        <p class="font-semibold my-2">ETAG:
+            <span class="text-gray-600">{{ file_metadata.etag }}</span>
+        </p>
+        <p class="font-semibold my-2">Uploaded By:
             <span class="text-gray-600">{{ file_metadata.uploaded_by }}</span>
         </p>
-        <p class="font-semibold">Last Modified:
+        <p class="font-semibold my-2">Last Modified:
             <span class="text-gray-600">{{ file_metadata.uploaded_at }}</span>
         </p>
 
         {% if is_image %}
-            <p class="font-semibold">File Preview:</p>
+            <p class="font-semibold my-2">File Preview:</p>
             <div class="flex">
                 <a href="{{ file_metadata.file_url  }}" target="_blank" class="max-w-4/5 rounded-xl bg-gray-950/5 opacity-85 overflow-hidden p-sm">
                     <img src="{{ file_metadata.file_url }}" alt="" class="w-full rounded-xl p-1" />
@@ -34,7 +37,7 @@
         {% endif %}
 
         {% if chunks %}
-        <p class="text-gray-600">Total Chunks: {{ file_metadata.total_chunks }}</p>
+        <p class="font-semibold my-2 text-gray-600" >Total Chunks: {{ file_metadata.total_chunks }}</p>
 
         <table class="table-auto w-full mt-4 border-collapse border border-gray-300">
             <thead>
