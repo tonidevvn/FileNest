@@ -10,12 +10,27 @@ Git (for version control)
 
 Virtual Environment (venv)
 
+Docker
+
+
 ### Clone the Repository
 [Repository link](https://github.com/tonidevvn/FileNest)
 ```
 git clone [Repository link]
 cd FileNest
 ```
+
+
+### Start MinIO
+```
+docker run -p 9000:9000 -p 9001:9001 -e "MINIO_ROOT_USER=admin" -e "MINIO_ROOT_PASSWORD=minioadmin" minio/minio server /data --console-address ":9001"
+```
+
+Verify MinIO is Running\
+Open a browser and go to http://localhost:9001 (or your server IP if remote).\
+Log in with the credentials (admin/minioadmin for the Docker example).\
+You should see the MinIO web interface.
+
 
 ### Create and Activate Virtual Environment
 
