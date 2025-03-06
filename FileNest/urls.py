@@ -25,10 +25,10 @@ from api.views import *
 urlpatterns = ([
     path('', image_upload, name='upload'),
     path('storage', load_storage, name='storage'),
-    path('storage/chunks/<uuid:file_key>/', view_chunks, name='view_chunks'),
+    path('detail/<str:file_id>/', detail, name='detail'),
     path('login/', user_login, name='login'),
     path('logout/', user_logout, name='logout'),
-    path('delete/<str:file_key>/', delete_file, name='delete_file'),
+    path('delete/<str:file_id>/', delete_file, name='delete_file'),
     path('admin/', admin.site.urls),
     path('api/', include('api.urls')),
-] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT))
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT))

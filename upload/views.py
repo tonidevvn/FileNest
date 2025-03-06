@@ -1,36 +1,37 @@
+from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
+
+from helpers.minio.storage import minio_upload, minio_remove
 from .models import FileMetadata, FileChunk
 
 @login_required(login_url='/login/')
 def image_upload(request):
     """Handles file upload and ensures the file list updates correctly."""
-    image_url = ""
+    file_url = ""
     if request.method == 'POST':
         image_file = request.FILES.get('image_file')
-        storage_type = request.POST.get('storage_type', 'cloud')  # Default to cloud storage
 
         if image_file:
-            upload = FileMetadata(uploaded_by=request.user,
-                                  storage_type=storage_type)
+            file_name, file_url, etag, chunk_count = minio_upload(image_file)
 
-            # Upload file to the correct storage field
-            if storage_type == 'cloud':
-                upload.file_cloud = image_file  # Store file in Cloud Storage
-                upload.file_localhost = None  # Ensure the local field is empty
-            else:
-                upload.file_localhost = image_file  # Store file in Local Storage
-                upload.file_cloud = None  # Ensure the cloud field is empty
-
-            upload.save()
-            image_url = upload.file_url
+            # Store metadata (e.g., number of chunks) in your Django model
+            FileMetadata.objects.create(
+                file_name=file_name,
+                file_url=file_url,
+                file_size=image_file.size,
+                etag=etag,
+                location=settings.MINIO_BUCKET_NAME,
+                uploaded_by=request.user,
+                total_chunks=chunk_count
+            )
 
     # Refresh the file list after any operation
     uploads = FileMetadata.objects.all() if request.user.is_staff else FileMetadata.objects.filter(
         uploaded_by=request.user)
-    return render(request, 'upload.html', {'image_url': image_url, 'uploads': uploads})
+    return render(request, 'upload.html', {'image_url': file_url, 'uploads': uploads})
 
 @login_required(login_url='/login/')
 def load_storage(request):
@@ -40,25 +41,33 @@ def load_storage(request):
     return render(request, 'storage.html', {'uploads': uploads})
 
 @login_required(login_url='/login/')
-def view_chunks(request, file_key):
+def detail(request, file_id):
     """Displays chunk details for a specific file."""
-    file_metadata = get_object_or_404(FileMetadata, file_key=file_key)
+    file_metadata = get_object_or_404(FileMetadata, id=file_id)
+
+    # Allowed image extensions
+    image_extensions = {".jpg", ".jpeg", ".png", ".gif", ".webp"}
+
+    file_name = file_metadata.file_name.lower()
+    is_image = any(file_name.endswith(ext) for ext in image_extensions)
 
     # Fetch chunks related to this file
     chunks = FileChunk.objects.filter(file_metadata=file_metadata).order_by('chunk_index')
 
-    return render(request, 'chunks.html', {'file_metadata': file_metadata, 'chunks': chunks})
+    return render(request, 'detail.html', {'file_metadata': file_metadata, 'chunks': chunks,
+        'is_image': is_image})
 
 @login_required(login_url='/login/')
-def delete_file(request, file_key):
+def delete_file(request, file_id):
     """Deletes a file from the database and cloud storage."""
-    file_obj = get_object_or_404(FileMetadata, file_key=file_key)
+    file_obj = get_object_or_404(FileMetadata, id=file_id)
 
     if file_obj.uploaded_by != request.user and not request.user.is_staff:
         return JsonResponse({"error": "Unauthorized"}, status=403)
 
     # Confirm file is removed before deleting from DB
-    if file_obj.file_cloud or file_obj.file_localhost:
+    if file_obj.file_name:
+        minio_remove(file_obj.file_name)
         file_obj.delete()
         return JsonResponse({"message": "File deleted successfully"}, status=200)
     else:

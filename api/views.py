@@ -8,6 +8,8 @@ from rest_framework import status
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import User
 
+from FileNest import settings
+from helpers.minio.storage import minio_remove, minio_upload
 from .serializers import UserSerializer
 from .serializers import FileMetadataSerializer  # You need to create this serializer
 from upload.models import FileMetadata
@@ -55,7 +57,6 @@ def test_token(request):
         "user": serializer.data
     }, status=status.HTTP_200_OK)
 
-
 @api_view(['POST'])
 @authentication_classes([BasicAuthentication, SessionAuthentication, TokenAuthentication])
 @permission_classes([IsAuthenticated])
@@ -65,23 +66,23 @@ def api_upload_file(request):
         return Response({"error": "No file provided"}, status=status.HTTP_400_BAD_REQUEST)
 
     image_file = request.FILES['image_file']
-    storage_type = request.POST.get('storage_type', 'cloud')  # Default to cloud storage
-
     if image_file:
-        upload = FileMetadata(uploaded_by=request.user, storage_type=storage_type)
-        # Upload file to the correct storage field
-        if storage_type == 'cloud':
-            upload.file_cloud = image_file  # Store file in Cloud Storage
-            upload.file_localhost = None  # Ensure the local field is empty
-        else:
-            upload.file_localhost = image_file  # Store file in Local Storage
-            upload.file_cloud = None  # Ensure the cloud field is empty
-        upload.save()
+        file_name, file_url, etag, chunk_count = minio_upload(image_file)
+
+        # Store metadata (e.g., number of chunks) in your Django model
+        upload = FileMetadata.objects.create(
+            file_name=file_name,
+            file_url=file_url,
+            file_size=image_file.size,
+            etag=etag,
+            location=settings.MINIO_BUCKET_NAME,
+            uploaded_by=request.user,
+            total_chunks=chunk_count
+        )
 
         return Response({
             "message": "File uploaded successfully",
-            "file_key": upload.file_key,
-            "file_url": upload.file_url,
+            "file_url": file_url,
             "uploaded_by": upload.uploaded_by.username,
             "uploaded_at": upload.uploaded_at
         }, status=status.HTTP_201_CREATED)
@@ -91,15 +92,18 @@ def api_upload_file(request):
 @api_view(['DELETE'])
 @authentication_classes([BasicAuthentication, SessionAuthentication, TokenAuthentication])
 @permission_classes([IsAuthenticated])
-def api_delete_file(request, file_key):
+def api_delete_file(request, file_id):
     try:
         """API to delete a file for authorized users only."""
-        file_obj = get_object_or_404(FileMetadata, file_key=file_key)
+        file_obj = get_object_or_404(FileMetadata, id=file_id)
 
         if file_obj.uploaded_by != request.user and not request.user.is_staff:
             return Response({"error": "Unauthorized"}, status=status.HTTP_403_FORBIDDEN)
 
-        file_obj.delete()
+        # Confirm file is removed before deleting from DB
+        if file_obj.file_name:
+            minio_remove(file_obj.file_name)
+            file_obj.delete()
         return Response({"message": "File deleted successfully"}, status=status.HTTP_200_OK)
     except Exception as e:
         return Response({"error": "File could not be deleted from storage"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -17,35 +17,29 @@
                     <th class="border border-gray-300 px-4 py-2">File Name</th>
                     <th class="border border-gray-300 px-4 py-2">File Size</th>
                     <th class="border border-gray-300 px-4 py-2">Server</th>
-                    <th class="border border-gray-300 px-4 py-2">Uploaded By</th>
                     <th class="border border-gray-300 px-4 py-2">Uploaded At</th>
                     <th class="border border-gray-300 px-4 py-2">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 {% for upload in uploads %}
-                <tr id="file-row-{{ upload.file_key }}" class="bg-white">
+                <tr class="bg-white">
                     <td class="border border-gray-300 px-4 py-2">{{ forloop.counter }}</td>
-                    <td class="border border-gray-300 px-4 py-2"><a href="{{ upload.file_url }}" class="text-blue-500 underline">{{ upload.file_name }}</a></td>
-                    <td class="border border-gray-300 px-4 py-2">{{ upload.file_size_str }}</td>
+                    <td class="border border-gray-300 px-4 py-2"><a href="{% url 'detail' upload.id %}" class="text-blue-500 underline">{{ upload.file_name }}</a></td>
+                    <td class="border border-gray-300 px-4 py-2">{{ upload.file_size|filesizeformat }}</td>
                     <td class="border border-gray-300 px-4 py-2">
-                        {% if upload.storage_type == 'cloud' %}
-                    	    <i class="fa fa-cloud" aria-hidden="true"></i> <strong>R2</strong>
-                        {% else %}
-                            <i class="fa fa-hdd-o" aria-hidden="true"></i> <strong>localhost</strong>
-                        {% endif %}
+                        <i class="fa fa-hdd-o" aria-hidden="true"></i> <strong>Minio</strong>
                     </td>
-                    <td class="border border-gray-300 px-4 py-2">{{ upload.uploaded_by.username }}</td>
                     <td class="border border-gray-300 px-4 py-2">{{ upload.uploaded_at }}</td>
                     <td class="border border-gray-300 px-4 py-2">
                         <button onclick="downloadFile('{{ upload.file_url }}', '{{ upload.file_name }}')" class="cursor-pointer w-12 bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">
                             <i class="fa fa-cloud-download" aria-hidden="true"></i>
                         </button>
-                        <button onclick="deleteFile('{{ upload.file_key }}', 'file-row-{{ upload.file_key }}')" class="cursor-pointer w-12 bg-red-500 text-white px-3 py-1 rounded hover:bg-red-700">
+                        <button onclick="deleteFile('{{ upload.id }}')" class="cursor-pointer w-12 bg-red-500 text-white px-3 py-1 rounded hover:bg-red-700">
                             <i class="fa fa-trash-o" aria-hidden="true"></i>
                         </button>
-                        {% if upload.is_chunked %}
-                            <button onclick="window.location.href='{% url 'view_chunks' upload.file_key %}'"
+                        {% if upload.total_chunks > 1 %}
+                            <button onclick="window.location.href='{% url 'detail' upload.id %}'"
                                     class="cursor-pointer w-12 bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600">
                                 <i class="fa fa-th-list" aria-hidden="true"></i>
                             </button>
@@ -60,9 +54,9 @@
             </tbody>
         </table>
         <script>
-            function deleteFile(fileKey, rowId) {
+            function deleteFile(id) {
                 if (confirm("Are you sure you want to delete this file?")) {
-                    fetch(`/api/delete/${fileKey}/`, {
+                    fetch(`/api/delete/${id}/`, {
                         method: "DELETE",
                         headers: {
                             "X-CSRFToken": "{{ csrf_token }}",
@@ -78,8 +72,8 @@
                                 gravity: "bottom", // `top` or `bottom`
                             }).showToast();
 
-                            // Wait for 500ms before refreshing the page
-                            setTimeout(() => document.getElementById(rowId).remove(), 500);
+                            // Wait for 500ms before redirect to the storage page
+                            setTimeout(() => window.location.href = "{% url 'storage' %}", 500);
                         } else {
                             alert("Error: " + data.error);
                         }

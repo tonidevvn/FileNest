@@ -14,31 +14,24 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
-load_dotenv()
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Enable Query String Authentication for Secure Downloads
-AWS_QUERYSTRING_AUTH = True
-# aws settings
-AWS_ACCESS_KEY_ID = os.getenv('CLOUDFLARE_R2_ACCESS_KEY')
-AWS_SECRET_ACCESS_KEY = os.getenv('CLOUDFLARE_R2_SECRET_KEY')
-AWS_STORAGE_BUCKET_NAME = os.getenv('CLOUDFLARE_R2_BUCKET')
-AWS_S3_REGION_NAME = os.getenv('CLOUDFLARE_R2_BUCKET_REGION', 'enam')
-AWS_DEFAULT_ACL = 'public-read'
-AWS_S3_SIGNATURE_VERSION = 's3v4'
-AWS_S3_CUSTOM_DOMAIN = os.getenv('CLOUDFLARE_R2_BUCKET_ALIAS_HOSTNAME')
-AWS_S3_ENDPOINT_URL = os.getenv('CLOUDFLARE_R2_BUCKET_ENDPOINT')
-AWS_S3_BUCKET_ALIAS = os.getenv('CLOUDFLARE_R2_BUCKET_ALIAS_HOSTNAME')
-AWS_S3_OBJECT_PARAMETERS = {'CacheControl': 'max-age=86400'}
+MINIO_ENDPOINT = 'localhost:9000'  # Update if using a remote server
+MINIO_ACCESS_KEY = 'admin'  # From Step 1 (MINIO_ROOT_USER)
+MINIO_SECRET_KEY = 'minioadmin'  # From Step 1 (MINIO_ROOT_PASSWORD)
+MINIO_BUCKET_NAME = 'distributed-files'
+MINIO_SECURE = False  # Use True if enabling HTTPS
+MINIO_ACCESS_URL = f'{MINIO_ENDPOINT}/{MINIO_BUCKET_NAME}'
 
-USE_S3 = 'TRUE'
-if USE_S3:
-    # s3 public media settings
-    # PUBLIC_MEDIA_LOCATION = 'media'
-    # MEDIA_URL = f'{AWS_S3_CUSTOM_DOMAIN}/{PUBLIC_MEDIA_LOCATION}/'
-    DEFAULT_FILE_STORAGE = 'helpers.cloudflare.storages.MediaFileStorage'
+# Optional: Use MinIO as Django's default file storage
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+AWS_S3_ENDPOINT_URL = f'http://{MINIO_ENDPOINT}'
+AWS_ACCESS_KEY_ID = MINIO_ACCESS_KEY
+AWS_SECRET_ACCESS_KEY = MINIO_SECRET_KEY
+AWS_STORAGE_BUCKET_NAME = MINIO_BUCKET_NAME
+AWS_S3_FILE_OVERWRITE = False  # Prevent overwriting files with same name
+AWS_S3_OBJECT_PARAMETERS = {'CacheControl': 'max-age=86400'}
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
@@ -81,8 +74,6 @@ INSTALLED_APPS = [
     'corsheaders',
     'storages',
     'api',
-    'storage',
-    'monitoring',
     'upload'
 ]
 
