@@ -8,14 +8,14 @@ from helpers.minio.storage import minio_upload, minio_remove
 from .models import FileMetadata, FileChunk
 
 @login_required(login_url='/login/')
-def image_upload(request):
+def file_upload(request):
     """Handles file upload and ensures the file list updates correctly."""
     file_url = ""
     if request.method == 'POST':
         upload_file = request.FILES.get('upload_file')
 
         if upload_file:
-            file_name, file_url, etag, chunk_count, chunk_parts = minio_upload(upload_file)
+            file_name, file_url, etag, chunk_count, chunk_parts, checksum = minio_upload(upload_file)
 
             # Store metadata (e.g., number of chunks) in your Django model
             file_metadata = FileMetadata.objects.create(
@@ -27,30 +27,25 @@ def image_upload(request):
                 uploaded_by=request.user,
                 total_chunks=chunk_count,
                 content_type=upload_file.content_type,
+                checksum=checksum,
             )
 
             if chunk_count > 1:
                 for i in range(chunk_count):
                     # Save chunk record
+                    chunk_part_i = chunk_parts[i]
                     FileChunk.objects.create(
                         file_metadata=file_metadata,
                         chunk_index=i,
-                        chunk_file=chunk_parts[i].get("name"),
-                        chunk_size=chunk_parts[i].get("size"),
-                        etag=chunk_parts[i].get("etag")
+                        chunk_file=chunk_part_i.get("name"),
+                        chunk_size=chunk_part_i.get("size"),
+                        etag=chunk_part_i.get("etag"),
                     )
 
     # Refresh the file list after any operation
     uploads = FileMetadata.objects.all() if request.user.is_staff else FileMetadata.objects.filter(
         uploaded_by=request.user)
     return render(request, 'upload.html', {'file_url': file_url, 'uploads': uploads})
-
-@login_required(login_url='/login/')
-def load_storage(request):
-    # Refresh the file list after any operation
-    uploads = FileMetadata.objects.all() if request.user.is_staff else FileMetadata.objects.filter(
-        uploaded_by=request.user)
-    return render(request, 'storage.html', {'uploads': uploads})
 
 @login_required(login_url='/login/')
 def detail(request, file_id):
@@ -84,6 +79,14 @@ def delete_file(request, file_id):
         return JsonResponse({"message": "File deleted successfully"}, status=200)
     else:
         return JsonResponse({"error": "File could not be deleted from storage"}, status=500)
+
+@login_required(login_url='/login/')
+def load_storage(request):
+    # Refresh the file list after any operation
+    uploads = FileMetadata.objects.all() if request.user.is_staff else FileMetadata.objects.filter(
+        uploaded_by=request.user)
+    return render(request, 'storage.html', {'uploads': uploads})
+
 
 def user_login(request):
     if request.method == "POST":

@@ -68,18 +68,19 @@ def api_upload_file(request):
 
     upload_file = request.FILES['upload_file']
     if upload_file:
-        file_name, file_url, etag, chunk_count, chunk_parts = minio_upload(upload_file)
+        file_name, file_url, etag, chunk_count, chunk_parts, checksum = minio_upload(upload_file)
 
         # Store metadata (e.g., number of chunks) in your Django model
-        file_metadata = FileMetadata.objects.create(
+        file_obj = FileMetadata.objects.create(
             file_name=file_name,
             file_url=file_url,
             file_size=upload_file.size,
-            content_type=upload_file.content_type,
             etag=etag,
             location=settings.MINIO_BUCKET_NAME,
-            total_chunks=chunk_count,
             uploaded_by=request.user,
+            total_chunks=chunk_count,
+            content_type=upload_file.content_type,
+            checksum=checksum,
         )
 
         chunks_list = []
@@ -88,7 +89,7 @@ def api_upload_file(request):
             for i in range(chunk_count):
                 # Save chunk record
                 chunk = FileChunk.objects.create(
-                    file_metadata=file_metadata,
+                    file_metadata=file_obj,
                     chunk_index=i,
                     chunk_file=chunk_parts[i].get("name"),
                     chunk_size=chunk_parts[i].get("size"),
@@ -104,19 +105,66 @@ def api_upload_file(request):
 
         return Response({
             "message": "File uploaded successfully",
+            "id": file_obj.id,
             "file_name": file_name,
             "file_url": file_url,
-            "file_size": file_metadata.file_size,
+            "file_size": file_obj.file_size,
             "content-type": upload_file.content_type,
             "etag": etag,
             "bucket": settings.MINIO_BUCKET_NAME,
-            "total_chunks": file_metadata.total_chunks,
+            "checksum": checksum,
+            "total_chunks": file_obj.total_chunks,
             "chunks": chunks_list, # Returning the list of chunks as well
-            "uploaded_by": file_metadata.uploaded_by.username,
-            "uploaded_at": file_metadata.uploaded_at,
+            "uploaded_by": file_obj.uploaded_by.username,
+            "uploaded_at": file_obj.uploaded_at,
         }, status=status.HTTP_201_CREATED)
 
+
     return Response({"error": "No file provided"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+@authentication_classes([BasicAuthentication, SessionAuthentication, TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def api_detail_file(request, file_id):
+    try:
+        """API to get a file for authorized users only."""
+        file_obj = get_object_or_404(FileMetadata, id=file_id)
+
+        if file_obj.uploaded_by != request.user and not request.user.is_staff:
+            return Response({"error": "Unauthorized"}, status=status.HTTP_403_FORBIDDEN)
+
+        chunks_list = []
+        chunks = FileChunk.objects.filter(file_metadata=file_obj).order_by("chunk_index").all()
+        chunk_count = chunks.count()
+        if chunk_count > 1:
+            for i in range(chunk_count):
+                chunk_i = chunks[i]
+                chunks_list.append({
+                    "chunk_index": chunk_i.chunk_index,
+                    "chunk_file": chunk_i.chunk_file,
+                    "chunk_size": chunk_i.chunk_size,
+                    "etag": chunk_i.etag,
+                    "uploaded_at": chunk_i.uploaded_at,
+                })
+
+        return Response({
+            "message": "File retrieved successfully.",
+            "id": file_obj.id,
+            "file_name": file_obj.file_name,
+            "file_url": file_obj.file_url,
+            "file_size": file_obj.file_size,
+            "content-type": file_obj.content_type,
+            "etag": file_obj.etag,
+            "bucket": settings.MINIO_BUCKET_NAME,
+            "checksum": file_obj.checksum,
+            "total_chunks": file_obj.total_chunks,
+            "chunks": chunks_list,  # Returning the list of chunks as well
+            "uploaded_by": file_obj.uploaded_by.username,
+            "uploaded_at": file_obj.uploaded_at,
+        }, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({"error": "File could not be found from storage"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['DELETE'])
 @authentication_classes([BasicAuthentication, SessionAuthentication, TokenAuthentication])

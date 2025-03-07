@@ -66,6 +66,13 @@ Authorization: token 4b1a91f7756a9363629ec6f34d27fba43490d550
 GET http://127.0.0.1:8000/api/storage/
 Content-Type: application/json
 
+
+###
+GET http://127.0.0.1:8000/api/detail/824f6260-f60f-47ed-9e00-566ab3f08abf/
+Content-Type: application/json
+Authorization: token 4b1a91f7756a9363629ec6f34d27fba43490d550
+
+
 ###
 DELETE http://127.0.0.1:8000/api/delete/e361fc3d-f94c-11ef-9302-8c3b4ab6789a/
 Content-Type: application/json

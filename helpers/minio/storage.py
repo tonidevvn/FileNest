@@ -1,3 +1,4 @@
+import hashlib
 from io import BytesIO
 
 from django.shortcuts import get_list_or_404
@@ -29,9 +30,12 @@ def minio_upload(uploaded_file):
     chunk_count = (file_size + chunk_size - 1) // chunk_size  # Ceiling division
     file_name = f"{uuid.uuid4()}-{clean_name}"
     chunk_parts = []  # List to store uploaded chunk paths
+    chunk_sources = []
+    hash_sha256 = hashlib.sha256()
 
     if chunk_count == 1:
         file_data = uploaded_file.read()  # Returns bytes
+        hash_sha256.update(file_data)  # Compute checksum while reading
         file_obj = minio_client.put_object(
             settings.MINIO_BUCKET_NAME,
             file_name,
@@ -40,7 +44,6 @@ def minio_upload(uploaded_file):
             length=file_size
         )
     else:
-        chunk_sources = []
         # Iterate over chunks
         for i in range(chunk_count):
             # Read a chunk
@@ -55,6 +58,7 @@ def minio_upload(uploaded_file):
             chunk_stream = BytesIO(chunk_data)
             chunk_name = f"{uploaded_file.name}.part.{i}"
             chunk_size = len(chunk_data)
+            hash_sha256.update(chunk_data)  # Compute checksum while reading
 
             # Upload chunk to MinIO
             chunk_obj = minio_client.put_object(
@@ -79,22 +83,27 @@ def minio_upload(uploaded_file):
     else:
         file_url = "https://" + file_url
     etag = file_obj.etag
+    checksum = hash_sha256.hexdigest()
 
-    return file_name, file_url, etag, chunk_count, chunk_parts
+    return file_name, file_url, etag, chunk_count, chunk_parts, checksum
+
 
 def minio_remove(file_to_delete):
-    file_name = file_to_delete.file_name
+    try:
+        file_name = file_to_delete.file_name
 
-    minio_client.remove_object(
-        settings.MINIO_BUCKET_NAME,
-        file_name
-    )
+        minio_client.remove_object(
+            settings.MINIO_BUCKET_NAME,
+            file_name
+        )
 
-    chunks = get_list_or_404(FileChunk, file_metadata=file_to_delete)
-    for chunk in chunks:
-        minio_client.remove_object(settings.MINIO_BUCKET_NAME, chunk.chunk_file)
+        chunks = get_list_or_404(FileChunk, file_metadata=file_to_delete)
+        for chunk in chunks:
+            minio_client.remove_object(settings.MINIO_BUCKET_NAME, chunk.chunk_file)
 
-    # Remove main file from MinIO
-    minio_client.remove_object(settings.MINIO_BUCKET_NAME, file_name)
+        # Remove main file from MinIO
+        minio_client.remove_object(settings.MINIO_BUCKET_NAME, file_name)
+    except Exception as e:
+        print(e)
 
     return {"message": "File and its chunks removed successfully."}

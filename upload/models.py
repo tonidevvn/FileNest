@@ -15,7 +15,7 @@ class FileMetadata(models.Model):
     uploaded_at = models.DateTimeField(auto_now_add=True)
     location = models.CharField(max_length=255, null=True, blank=True)  # e.g., MinIO bucket path
     total_chunks = models.IntegerField(default=0)
-    checksum = models.CharField(max_length=64, blank=True)  # For error checking
+    checksum = models.CharField(max_length=64, blank=True)  # Stores SHA-256 checksum for error detection
 
     def __str__(self):
         return f"File {self.file_name} size of {convert_size(self.file_size)} bytes uploaded by {self.uploaded_by.username} at {self.uploaded_at}"

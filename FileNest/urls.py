@@ -23,12 +23,12 @@ from django.conf.urls.static import static
 from api.views import *
 
 urlpatterns = ([
-    path('', image_upload, name='upload'),
+    path('', file_upload, name='upload'),
     path('storage', load_storage, name='storage'),
     path('detail/<str:file_id>/', detail, name='detail'),
+    path('delete/<str:file_id>/', delete_file, name='delete_file'),
     path('login/', user_login, name='login'),
     path('logout/', user_logout, name='logout'),
-    path('delete/<str:file_id>/', delete_file, name='delete_file'),
     path('admin/', admin.site.urls),
     path('api/', include('api.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT))

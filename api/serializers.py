@@ -9,28 +9,49 @@ class UserSerializer(serializers.ModelSerializer):
 
 class FileMetadataSerializer(serializers.ModelSerializer):
     file_name = serializers.SerializerMethodField()
-    file_size = serializers.SerializerMethodField()
     file_url = serializers.SerializerMethodField()
+    file_size = serializers.SerializerMethodField()
+    content_type = serializers.SerializerMethodField()
+    etag = serializers.SerializerMethodField()
+    location = serializers.SerializerMethodField()
+    total_chunks = serializers.SerializerMethodField()
+    checksum = serializers.SerializerMethodField()
     uploaded_by = serializers.SerializerMethodField()
+    uploaded_at = serializers.SerializerMethodField()
 
     class Meta(object):
         model = FileMetadata
-        fields = ['id', 'etag', 'file_name', 'uploaded_by', 'uploaded_at', 'file_size', 'file_url']
+        fields = ['id', 'file_name', 'file_url', 'file_size', 'content_type', 'etag', 'location', 'total_chunks', 'checksum', 'uploaded_by', 'uploaded_at']
 
     def get_file_name(self, obj):
-        """Return the name of the file."""
         return obj.file_name
 
     def get_file_url(self, obj):
-        """Return the full URL of the file (works for S3 and local storage)."""
         return obj.file_url
 
     def get_file_size(self, obj):
-        """Return the full URL of the file (works for S3 and local storage)."""
         return obj.file_size
+
+    def get_content_type(self, obj):
+        return obj.content_type
+
+    def get_etag(self, obj):
+        return obj.etag
+
+    def get_location(self, obj):
+        return obj.location
+
+    def get_total_chunks(self, obj):
+        return obj.total_chunks
+
+    def get_checksum(self, obj):
+        return obj.checksum
+
+    def get_uploaded_at(self, obj):
+        return obj.uploaded_at
 
     def get_uploaded_by(self, obj):
         """Return the owner of the file."""
         if obj.uploaded_by:
             return obj.uploaded_by.username
-        return 0
+        return 'Guest'
