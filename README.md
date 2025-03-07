@@ -13,6 +13,25 @@ Virtual Environment (venv)
 Docker
 
 
+## Project Features
+
+
+| **Status**  | **Feature Description** |
+|-------------| ------- |
+| ✅ Done     | File chunking mechanism for handling large files efficiently   |
+| ✅ Done     |  APIs for file upload, chunk distribution, and retrieval    |
+| 🔜  Ongoing | Distributed storage system integration using MinIO   |
+| 🔜  Ongoing | File replication for redundancy and data integrity    |
+| ✅ Done     | Error detection mechanisms such as checksums for file verification   |
+| 🔜  Ongoing | Recovery mechanisms for handling failures or corrupted chunks  |
+| 🔜  Ongoing | Retrieval logic to fetch files from the nearest or least-loaded node  |
+| 🔜  Ongoing | Caching strategies for frequently accessed files to improve performance  |
+| ✅ Done     |  User-friendly interface for file uploads and downloads  |
+| 🔜  Ongoing | Admin panel to monitor file distribution and node statuses  |
+| 🔜  Ongoing | Logging and reporting functionalities to track file access and storage operations  |
+| ✅ Done     | Secure authentication and authorization using API tokens  |
+
+
 ### Clone the Repository
 [Repository link](https://github.com/tonidevvn/FileNest)
 ```
