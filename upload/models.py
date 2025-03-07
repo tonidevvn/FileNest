@@ -8,7 +8,8 @@ class FileMetadata(models.Model):
     id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False)
     file_name = models.CharField(max_length=255)
     file_url = models.CharField(max_length=255, null=True, blank=True)
-    file_size = models.IntegerField()
+    file_size = models.IntegerField(null=True, blank=True)
+    content_type = models.CharField(max_length=255, null=True, blank=True)
     etag = models.CharField(max_length=255, null=True, blank=True)  # Stores MinIO ETag
     uploaded_by = models.ForeignKey(User, on_delete=models.CASCADE)
     uploaded_at = models.DateTimeField(auto_now_add=True)
@@ -26,6 +27,7 @@ class FileChunk(models.Model):
     file_metadata = models.ForeignKey(FileMetadata, on_delete=models.CASCADE, related_name='chunks')
     chunk_index = models.IntegerField()
     chunk_file = models.CharField(max_length=255, null=True, blank=True)
+    chunk_size = models.IntegerField(null=True, blank=True)
     etag = models.CharField(max_length=255, null=True, blank=True)  # Stores MinIO ETag
     uploaded_at = models.DateTimeField(auto_now_add=True)
 

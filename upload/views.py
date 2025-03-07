@@ -12,26 +12,38 @@ def image_upload(request):
     """Handles file upload and ensures the file list updates correctly."""
     file_url = ""
     if request.method == 'POST':
-        image_file = request.FILES.get('image_file')
+        upload_file = request.FILES.get('upload_file')
 
-        if image_file:
-            file_name, file_url, etag, chunk_count = minio_upload(image_file)
+        if upload_file:
+            file_name, file_url, etag, chunk_count, chunk_parts = minio_upload(upload_file)
 
             # Store metadata (e.g., number of chunks) in your Django model
-            FileMetadata.objects.create(
+            file_metadata = FileMetadata.objects.create(
                 file_name=file_name,
                 file_url=file_url,
-                file_size=image_file.size,
+                file_size=upload_file.size,
                 etag=etag,
                 location=settings.MINIO_BUCKET_NAME,
                 uploaded_by=request.user,
-                total_chunks=chunk_count
+                total_chunks=chunk_count,
+                content_type=upload_file.content_type,
             )
+
+            if chunk_count > 1:
+                for i in range(chunk_count):
+                    # Save chunk record
+                    FileChunk.objects.create(
+                        file_metadata=file_metadata,
+                        chunk_index=i,
+                        chunk_file=chunk_parts[i].get("name"),
+                        chunk_size=chunk_parts[i].get("size"),
+                        etag=chunk_parts[i].get("etag")
+                    )
 
     # Refresh the file list after any operation
     uploads = FileMetadata.objects.all() if request.user.is_staff else FileMetadata.objects.filter(
         uploaded_by=request.user)
-    return render(request, 'upload.html', {'image_url': file_url, 'uploads': uploads})
+    return render(request, 'upload.html', {'file_url': file_url, 'uploads': uploads})
 
 @login_required(login_url='/login/')
 def load_storage(request):

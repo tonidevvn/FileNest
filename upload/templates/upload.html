@@ -12,7 +12,7 @@
             <div class="field">
                 <div class="control">
                     <label class="block text-gray-700 font-semibold">Choose a file:</label>
-                    <input class="file-input w-full p-2 border border-gray-300 rounded" type="file" name="image_file">
+                    <input class="file-input w-full p-2 border border-gray-300 rounded" type="file" name="upload_file">
                 </div>
             </div>
             <div class="field">
@@ -21,8 +21,8 @@
                 </div>
             </div>
         </form>
-        {% if image_url %}
-        <p id="file_uploaded_msg" class="text-center text-green-500 mt-4">File uploaded at: <a href="{{ image_url }}" class="text-blue-500 underline" >{{ image_url }}</a></p>
+        {% if file_url %}
+        <p id="file_uploaded_msg" class="text-center text-green-500 mt-4">File uploaded at: <a href="{{ file_url }}" class="text-blue-500 underline" >{{ file_url }}</a></p>
         <script>
             document.addEventListener("DOMContentLoaded", (event) => {
                 Toastify({

@@ -8,14 +8,20 @@
         <h2 class="text-2xl font-bold mb-6 text-center">📎 Object Info</h2>
         <hr class="mb-4">
 
-        <p class="font-semibold my-2">Name: {{ file_metadata.file_name }}</p>
+        <p class="font-semibold my-2">Name: <span class="text-gray-600">{{ file_metadata.file_name }}</span></p>
         <p class="font-semibold my-2">Location:
             <span class="text-gray-600">
                 <i class="fa fa-hdd-o" aria-hidden="true"></i> <strong>Minio</strong>
             </span>
         </p>
+        <div class="w-fit px-10 bg-gray-400 text-white text-sm font-mono p-2 rounded-lg overflow-x-auto">
+            <code class="select-all">{{ file_metadata.file_url }}</code>
+        </div>
         <p class="font-semibold my-2">Size:
             <span class="text-gray-600">{{ file_metadata.file_size |filesizeformat }}</span>
+        </p>
+        <p class="font-semibold my-2">Content-type:
+            <span class="text-gray-600">{{ file_metadata.content_type }}</span>
         </p>
         <p class="font-semibold my-2">ETAG:
             <span class="text-gray-600">{{ file_metadata.etag }}</span>
@@ -27,34 +33,25 @@
             <span class="text-gray-600">{{ file_metadata.uploaded_at }}</span>
         </p>
 
-        {% if is_image %}
-            <p class="font-semibold my-2">File Preview:</p>
-            <div class="flex">
-                <a href="{{ file_metadata.file_url  }}" target="_blank" class="max-w-4/5 rounded-xl bg-gray-950/5 opacity-85 overflow-hidden p-sm">
-                    <img src="{{ file_metadata.file_url }}" alt="" class="w-full rounded-xl p-1" />
-                </a>
-            </div>
-        {% endif %}
-
         {% if chunks %}
-        <p class="font-semibold my-2 text-gray-600" >Total Chunks: {{ file_metadata.total_chunks }}</p>
+            <p class="font-semibold my-2" >Total Chunks:  <span class="text-gray-600">{{ file_metadata.total_chunks }}</span></p>
 
-        <table class="table-auto w-full mt-4 border-collapse border border-gray-300">
+        <table class="table-auto w-fit mt-4 border-collapse border border-gray-300">
             <thead>
                 <tr class="bg-gray-200">
                     <th class="border border-gray-300 px-4 py-2">Chunk No</th>
                     <th class="border border-gray-300 px-4 py-2">Chunk Name</th>
                     <th class="border border-gray-300 px-4 py-2">Size</th>
-                    <th class="border border-gray-300 px-4 py-2">Uploaded At</th>
+                    <th class="border border-gray-300 px-4 py-2">Etag</th>
                 </tr>
             </thead>
             <tbody>
                 {% for chunk in chunks %}
                 <tr>
                     <td class="border border-gray-300 px-4 py-2">{{ chunk.chunk_index }}</td>
-                    <td class="border border-gray-300 px-4 py-2">{{ chunk.chunk_file.name }}</td>
-                    <td class="border border-gray-300 px-4 py-2">{{ chunk.chunk_file.size|filesizeformat }}</td>
-                    <td class="border border-gray-300 px-4 py-2">{{ chunk.uploaded_at }}</td>
+                    <td class="border border-gray-300 px-4 py-2">{{ chunk.chunk_file }}</td>
+                    <td class="border border-gray-300 px-4 py-2">{{ chunk.chunk_size|filesizeformat }}</td>
+                    <td class="border border-gray-300 px-4 py-2">{{ chunk.etag }}</td>
                 </tr>
                 {% empty %}
                 <tr>
@@ -64,6 +61,23 @@
             </tbody>
         </table>
         {% endif %}
+
+        {% if is_image %}
+            <p class="font-semibold my-2">File Preview:</p>
+            <div class="flex">
+               <div class="container__img-holder max-w-4/5 rounded-xl bg-gray-950/5 opacity-85 overflow-hidden p-sm">
+                   <img src="{{ file_metadata.file_url }}" alt="" class="w-80 rounded-xl p-1" />
+               </div>
+            </div>
+            <div class="img-popup">
+              <img src="" alt="Popup Image" class="rounded-xl p-1" >
+              <div class="close-btn">
+                <div class="bar"></div>
+                <div class="bar"></div>
+              </div>
+            </div>
+        {% endif %}
+
         <div class="flex gap-4 mt-4">
             <button onclick="downloadFile('{{ file_metadata.file_url }}', '{{ file_metadata.file_name }}')" class="cursor-pointer bg-green-500 text-white px-4 py-2 rounded hover:bg-green-700">Download</button>
             <button onclick="deleteFile('{{ file_metadata.id }}')" class="cursor-pointer bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700">Delete</button>
@@ -125,5 +139,35 @@
                 })
                 .catch((e) => console.error(e));
             }
+
+            document.addEventListener("DOMContentLoaded", function(event) {
+                // Required elements
+                var imgPopup = document.querySelector('.img-popup');
+                var imgConts = document.querySelectorAll('.container__img-holder');
+                var popupImage = document.querySelector('.img-popup img');
+                var closeBtn = document.querySelector('.close-btn');
+
+                // Handle events: Open popup
+                imgConts.forEach(function(imgCont) {
+                    imgCont.addEventListener('click', function() {
+                        var imgSrc = this.querySelector('img').getAttribute('src');
+                        popupImage.setAttribute('src', imgSrc);
+                        imgPopup.classList.add('opened');
+                    });
+                });
+
+                // Handle events: Close popup when clicking on overlay or close button
+                [imgPopup, closeBtn].forEach(function(element) {
+                    element.addEventListener('click', function() {
+                        imgPopup.classList.remove('opened');
+                        popupImage.setAttribute('src', '');
+                    });
+                });
+
+                // Prevent closing when clicking on image
+                popupImage.addEventListener('click', function(event) {
+                    event.stopPropagation();
+                });
+            });
         </script>
 {% endblock %}

@@ -17,35 +17,40 @@ Content-Type: application/json
 ###
 GET http://127.0.0.1:8000/api/test_token
 Content-Type: application/json
-Authorization: token 39d504b8e52752de849f927bb6d93d3fd22608a3
+Authorization: token 4b1a91f7756a9363629ec6f34d27fba43490d550
 
 ###
 POST http://127.0.0.1:8000/api/upload/
 Content-Type: multipart/form-data; boundary=boundary
-Authorization: token 39d504b8e52752de849f927bb6d93d3fd22608a3
+Authorization: token 4b1a91f7756a9363629ec6f34d27fba43490d550
 
 --boundary
-Content-Disposition: form-data; name="storage_type"
-
-cloud
---boundary
-Content-Disposition: form-data; name="image_file"; filename="test_upload.png"
+Content-Disposition: form-data; name="upload_file"; filename="test_upload.png"
 Content-Type: image/png
 
 < test_upload.png
 --boundary
 
+
+###
+POST http://127.0.0.1:8000/api/upload/
+Content-Type: multipart/form-data; boundary=boundary
+Authorization: token 4b1a91f7756a9363629ec6f34d27fba43490d550
+
+--boundary
+Content-Disposition: form-data; name="upload_file"; filename="test_multipart_upload.jpg"
+Content-Type: image/jpg
+
+< test_multipart_upload.jpg
+--boundary
+
 ###
 POST http://127.0.0.1:8000/api/upload/
 Content-Type: multipart/form-data; boundary=boundary
 Authorization: token 39d504b8e52752de849f927bb6d93d3fd22608a3
 
 --boundary
-Content-Disposition: form-data; name="storage_type"
-
-local
---boundary
-Content-Disposition: form-data; name="image_file"; filename="test_upload.png"
+Content-Disposition: form-data; name="upload_file"; filename="test_upload.png"
 Content-Type: image/png
 
 < test_upload.png
@@ -54,7 +59,7 @@ Content-Type: image/png
 ###
 GET http://127.0.0.1:8000/api/storage/
 Content-Type: application/json
-Authorization: token 39d504b8e52752de849f927bb6d93d3fd22608a3
+Authorization: token 4b1a91f7756a9363629ec6f34d27fba43490d550
 
 
 ###
@@ -62,12 +67,12 @@ GET http://127.0.0.1:8000/api/storage/
 Content-Type: application/json
 
 ###
-DELETE http://127.0.0.1:8000/api/delete/c1a6fa7b-f3f5-11ef-9677-8c3b4ab6789a/
+DELETE http://127.0.0.1:8000/api/delete/e361fc3d-f94c-11ef-9302-8c3b4ab6789a/
 Content-Type: application/json
-Authorization: token 39d504b8e52752de849f927bb6d93d3fd22608a3
+Authorization: token e3e6a3932b782d097afb773a71a6e1a6d1420d5a
 
 
 ###
 DELETE http://127.0.0.1:8000/api/delete/file-key-not-found/
 Content-Type: application/json
-Authorization: token 39d504b8e52752de849f927bb6d93d3fd22608a3
+Authorization: token e3e6a3932b782d097afb773a71a6e1a6d1420d5a
