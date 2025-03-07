@@ -130,8 +130,8 @@ def api_delete_file(request, file_id):
             return Response({"error": "Unauthorized"}, status=status.HTTP_403_FORBIDDEN)
 
         # Confirm file is removed before deleting from DB
-        if file_obj.file_name:
-            minio_remove(file_obj.file_name)
+        if file_obj:
+            minio_remove(file_obj)
             file_obj.delete()
         return Response({"message": "File deleted successfully"}, status=status.HTTP_200_OK)
     except Exception as e:

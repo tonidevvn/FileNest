@@ -1,10 +1,14 @@
 from io import BytesIO
+
+from django.shortcuts import get_list_or_404
 from django.utils.text import get_valid_filename
 from minio import Minio
 from django.conf import settings
 import uuid
 
 from minio.commonconfig import ComposeSource
+
+from upload.models import FileChunk
 
 # Initialize MinIO client
 minio_client = Minio(
@@ -78,8 +82,19 @@ def minio_upload(uploaded_file):
 
     return file_name, file_url, etag, chunk_count, chunk_parts
 
-def minio_remove(file_name):
+def minio_remove(file_to_delete):
+    file_name = file_to_delete.file_name
+
     minio_client.remove_object(
         settings.MINIO_BUCKET_NAME,
         file_name
     )
+
+    chunks = get_list_or_404(FileChunk, file_metadata=file_to_delete)
+    for chunk in chunks:
+        minio_client.remove_object(settings.MINIO_BUCKET_NAME, chunk.chunk_file)
+
+    # Remove main file from MinIO
+    minio_client.remove_object(settings.MINIO_BUCKET_NAME, file_name)
+
+    return {"message": "File and its chunks removed successfully."}
