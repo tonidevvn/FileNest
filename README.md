@@ -19,14 +19,14 @@ Docker
 | **Status**  | **Feature Description** |
 |-------------| ------- |
 | ✅ Done     | File chunking mechanism for handling large files efficiently   |
-| ✅ Done     |  APIs for file upload, chunk distribution, and retrieval    |
+| ✅ Done     | APIs for file upload, chunk distribution, and retrieval   |
 | ✅ Done     | Distributed storage system integration using MinIO   |
-| 🔜  Ongoing | File replication for redundancy and data integrity    |
+| ✅ Done     | File replication for redundancy and data integrity   |
 | ✅ Done     | Error detection mechanisms such as checksums for file verification   |
 | 🔜  Ongoing | Recovery mechanisms for handling failures or corrupted chunks  |
 | ✅ Done     | Retrieval logic to fetch files from the nearest or least-loaded node  |
 | ✅ Done     | Caching strategies for frequently accessed files to improve performance  |
-| ✅ Done     |  User-friendly interface for file uploads and downloads  |
+| ✅ Done     | User-friendly interface for file uploads and downloads  |
 | 🔜  Ongoing | Admin panel to monitor file distribution and node statuses  |
 | 🔜  Ongoing | Logging and reporting functionalities to track file access and storage operations  |
 | ✅ Done     | Secure authentication and authorization using API tokens  |
