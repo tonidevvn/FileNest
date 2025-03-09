@@ -1,0 +1,81 @@
+services:
+  minio1:
+    image: minio/minio
+    container_name: asia-minio
+    ports:
+      - "9000:9000"
+      - "9090:9090"
+    environment:
+      MINIO_ACCESS_KEY: admin
+      MINIO_SECRET_KEY: minioadmin
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: minioadmin
+      MINIO_SITE_NAME: asia-site
+      MINIO_SITE_REGION: asia
+    volumes:
+      - minio1:/data
+    command: server --console-address ":9090" /data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    networks:
+      - minio-network
+
+  minio2:
+    image: minio/minio
+    container_name: america-minio
+    ports:
+      - "9001:9000"
+      - "9091:9090"
+    environment:
+      MINIO_ACCESS_KEY: admin
+      MINIO_SECRET_KEY: minioadmin
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: minioadmin
+      MINIO_SITE_NAME: america-site
+      MINIO_SITE_REGION: us-east-1
+    volumes:
+      - minio2:/data
+    command: server --console-address ":9090" /data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    networks:
+      - minio-network
+
+  setup-replication:
+    image: minio/mc
+    container_name: setup-replication
+    depends_on:
+      minio1:
+        condition: service_healthy
+      minio2:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      echo 'Waiting for MinIO instances to be fully ready...' &&
+      sleep 15 &&
+      mc alias set minio1 http://minio1:9000 admin minioadmin &&
+      mc alias set minio2 http://minio2:9000 admin minioadmin &&
+      echo 'Setting up site replication...' &&
+      mc admin replicate add minio1 minio2 &&
+      echo 'Creating test bucket...' &&
+      mc mb minio1/bucket
+      "
+    networks:
+      - minio-network
+    restart: "no"
+
+networks:
+  minio-network:
+    driver: bridge
+
+volumes:
+  minio1:
+    driver: local
+  minio2:
+    driver: local
