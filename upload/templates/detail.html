@@ -14,9 +14,18 @@
                 <i class="fa fa-hdd-o" aria-hidden="true"></i> <strong>Minio</strong>
             </span>
         </p>
-        <div class="w-fit px-10 bg-gray-400 text-white text-sm font-mono p-2 rounded-lg overflow-x-auto">
-            <code class="select-all">{{ file_metadata.file_url }}</code>
-        </div>
+        {% for file in distributed_files %}
+            <div class="my-2 w-fit px-5 bg-gray-400 text-white text-sm font-mono p-1 rounded-lg overflow-x-auto">
+                    {% if file.status == "Available" %}
+                       <span class="text-red-400 bg-black mr-2 rounded-sm"> ✅ {{ file.region }} </span>
+                    {% else %}
+                       <span class="text-red-400 bg-black mr-2 rounded-sm"> ❌ {{ file.region }} </span>
+                    {% endif %}
+
+                <code class="select-all"> {{ file.file_url }}</code>
+            </div>
+        {% endfor %}
+
         <p class="font-semibold my-2">Size:
             <span class="text-gray-600">{{ file_metadata.file_size |filesizeformat }}</span>
         </p>

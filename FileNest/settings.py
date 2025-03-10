@@ -27,6 +27,7 @@ MINIO_NODES = [
         "secure": False,
         "latitude": 34.0479,
         "longitude": 100.6197,
+        "region": "asia",
         "load": 0,
     },
     {
@@ -37,6 +38,7 @@ MINIO_NODES = [
         "secure": False,
         "latitude": 37.0902,
         "longitude": -95.7129,
+        "region": "us-east",
         "load": 0,
     },
 ]

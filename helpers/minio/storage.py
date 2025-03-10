@@ -85,9 +85,9 @@ def minio_upload(uploaded_file):
 
     file_url = f"{access_url}/{file_name}"
     if not secured:
-        file_url = "http://" + file_url
+        file_url = f"http://{file_url}"
     else:
-        file_url = "https://" + file_url
+        file_url = f"https://{file_url}"
     etag = file_obj.etag
     checksum = hash_sha256.hexdigest()
 

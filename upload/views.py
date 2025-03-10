@@ -4,6 +4,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 
+from helpers.minio.node import node_manager
 from helpers.minio.storage import minio_upload, minio_remove
 from .models import FileMetadata, FileChunk
 
@@ -55,14 +56,21 @@ def detail(request, file_id):
     # Allowed image extensions
     image_extensions = {".jpg", ".jpeg", ".png", ".gif", ".webp"}
 
-    file_name = file_metadata.file_name.lower()
-    is_image = any(file_name.endswith(ext) for ext in image_extensions)
+    file_name = file_metadata.file_name
+    is_image = any(file_name.lower().endswith(ext) for ext in image_extensions)
 
     # Fetch chunks related to this file
     chunks = FileChunk.objects.filter(file_metadata=file_metadata).order_by('chunk_index')
 
+    nodes = node_manager.get_active_nodes()
+    distributed_files = []
+    for node in nodes:
+        status = node.check_file_status(file_name)
+        file_url = f"http://{node.access_url}/{file_name}"
+        distributed_files.append({"status": status, "file_url": file_url, "region": node.region})
+
     return render(request, 'detail.html', {'file_metadata': file_metadata, 'chunks': chunks,
-        'is_image': is_image})
+        'is_image': is_image, "distributed_files": distributed_files})
 
 @login_required(login_url='/login/')
 def delete_file(request, file_id):

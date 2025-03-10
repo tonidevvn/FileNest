@@ -35,7 +35,7 @@ services:
       MINIO_ROOT_USER: admin
       MINIO_ROOT_PASSWORD: minioadmin
       MINIO_SITE_NAME: america-site
-      MINIO_SITE_REGION: us-east-1
+      MINIO_SITE_REGION: us-east
     volumes:
       - minio2:/data
     command: server --console-address ":9090" /data

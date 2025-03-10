@@ -1,8 +1,8 @@
 from django.conf import settings
 from minio import Minio
+import requests
 
 nodes = []
-
 
 class Node:
     def __init__(
@@ -14,6 +14,7 @@ class Node:
         bucket_name,
         latitude,
         longitude,
+        region,
         load,
     ):
         self.endpoint = endpoint
@@ -23,6 +24,7 @@ class Node:
         self.bucket_name = bucket_name
         self.latitude = latitude
         self.longitude = longitude
+        self.region = region
         self.load = load
         self.access_url = f"{endpoint}/{bucket_name}"
         self.client = Minio(
@@ -36,6 +38,18 @@ class Node:
         except Exception as e:
             print(f"Error: {e}")
             return False
+
+    def check_file_status(self, file_name):
+        """Check if the file URL is accessible (status 200)."""
+        try:
+            url = f"http://{self.access_url}/{file_name}"
+            response = requests.head(url, timeout=5)  # Use HEAD request for efficiency
+            if response.status_code == 200:
+                return "Available"
+            else:
+                return "Not found"
+        except requests.RequestException:
+            return "Not found"
 
 
 class NodeManager:
