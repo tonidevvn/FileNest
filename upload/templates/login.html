@@ -5,7 +5,7 @@
 {% block content %}
 <div class="min-h-screen flex items-center justify-center">
     <div class="bg-white p-8 rounded-lg shadow-lg w-96">
-        <h2 class="text-2xl font-bold mb-6 text-center">Login</h2>
+        <h1 class="text-3xl font-bold mb-6 text-center">Login</h1>
         {% if error %}
             <p class="text-red-500 text-sm text-center">{{ error }}</p>
         {% endif %}
@@ -19,7 +19,7 @@
                 <label class="block text-gray-700">Password:</label>
                 <input type="password" name="password" required class="w-full p-2 border border-gray-300 rounded">
             </div>
-            <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-700">Login</button>
+            <button type="submit" class="w-full bg-blue-500 text-white py-2 cursor-pointer rounded hover:bg-blue-700">Login</button>
         </form>
         <p class="text-center text-sm mt-4">Don't have an account?
             <a href="{% url 'signup' %}" class="text-blue-500 hover:underline">Sign up here</a>

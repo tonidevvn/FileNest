@@ -1,4 +1,29 @@
-/* Image gallery stlyling */
+/* 1. Use a more-intuitive box-sizing model */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Open Sans", sans-serif;
+  font-optical-sizing: auto;
+  -webkit-font-smoothing: antialiased;
+}
+
+label, input, button, textarea, select, p, a {
+  font-family: "Open Sans", sans-serif;
+  font-optical-sizing: auto;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: "Bubblegum Sans", sans-serif;
+  text-wrap: balance;
+}
+
+/* Image gallery styling */
 .container__img {
   max-width: 900px;
   margin: 80px auto 0;
