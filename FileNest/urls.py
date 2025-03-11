@@ -28,6 +28,7 @@ urlpatterns = ([
     path('detail/<str:file_id>/', detail, name='detail'),
     path('delete/<str:file_id>/', delete_file, name='delete_file'),
     path('login/', user_login, name='login'),
+    path('signup/', user_signup, name='signup'),
     path('logout/', user_logout, name='logout'),
     path('admin/', admin.site.urls),
     path('api/', include('api.urls')),

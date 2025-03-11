@@ -4,8 +4,8 @@ from .views import *
 
 urlpatterns = [
     path("hello/", hello),
-    path("signup/", signup),
     path("login/", login),
+    path("signup/", signup),
     path("test_token/", test_token),
     path("upload/", api_upload_file, name="api_upload_file"),
     path("detail/<str:file_id>/", api_detail_file, name="api_detail_file"),

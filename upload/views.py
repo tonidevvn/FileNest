@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.contrib.auth.models import User
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -111,3 +112,26 @@ def user_login(request):
 def user_logout(request):
     logout(request)
     return redirect('/login/')  # Redirect to login page
+
+def user_signup(request):
+    if request.method == "POST":
+        username = request.POST['username']
+        email = request.POST['email']
+        password1 = request.POST['password1']
+        password2 = request.POST['password2']
+
+        if password1 != password2:
+            return render(request, 'signup.html', {'error': 'Passwords do not match'})
+
+        if User.objects.filter(username=username).exists():
+            return render(request, 'signup.html', {'error': 'Username already taken'})
+
+        if User.objects.filter(email=email).exists():
+            return render(request, 'signup.html', {'error': 'Email is already registered'})
+
+        user = User.objects.create_user(username=username, email=email, password=password1)
+        user.save()
+        login(request, user)  # Automatically log in after sign-up
+        return redirect('/')  # Redirect to homepage after signup
+
+    return render(request, 'signup.html')
