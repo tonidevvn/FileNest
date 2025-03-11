@@ -43,7 +43,7 @@ class Node:
         """Check if the file URL is accessible (status 200)."""
         try:
             url = f"http://{self.access_url}/{file_name}"
-            response = requests.head(url, timeout=5)  # Use HEAD request for efficiency
+            response = requests.head(url, timeout=2)  # Use HEAD request for efficiency
             if response.status_code == 200:
                 return "Available"
             else:
@@ -58,6 +58,9 @@ class NodeManager:
         # Initialize MinIO nodes
         for node in settings.MINIO_NODES:
             self.nodes.append(Node(**node))
+
+    def get_all_nodes(self):
+        return [node for node in self.nodes]
 
     def get_active_nodes(self):
         return [node for node in self.nodes if node.check_health()]

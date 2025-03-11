@@ -14,6 +14,10 @@ label, input, button, textarea, select, p, a {
   font-optical-sizing: auto;
 }
 
+nav a , nav button {
+  font-family: "Bubblegum Sans", sans-serif;
+}
+
 p {
   text-wrap: pretty;
 }

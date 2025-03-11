@@ -63,7 +63,7 @@ def detail(request, file_id):
     # Fetch chunks related to this file
     chunks = FileChunk.objects.filter(file_metadata=file_metadata).order_by('chunk_index')
 
-    nodes = node_manager.get_active_nodes()
+    nodes = node_manager.get_all_nodes()
     distributed_files = []
     for node in nodes:
         status = node.check_file_status(file_name)
