@@ -14,17 +14,20 @@
                 <i class="fa fa-hdd-o" aria-hidden="true"></i> <strong>Minio</strong>
             </span>
         </p>
-        {% for file in distributed_files %}
-            <div class="my-2 w-fit px-5 bg-gray-400 text-white text-sm font-mono p-1 rounded-lg overflow-x-auto">
-                    {% if file.status == "Available" %}
-                       <span class="text-red-400 bg-black mr-2 rounded-sm"> ✅ {{ file.region }} </span>
-                    {% else %}
-                       <span class="text-red-400 bg-black mr-2 rounded-sm"> ❌ {{ file.region }} </span>
-                    {% endif %}
 
-                <code class="select-all"> {{ file.file_url }}</code>
-            </div>
-        {% endfor %}
+        {% if request.user.is_staff %}
+            {% for file in distributed_files %}
+                <div class="my-2 w-fit px-5 bg-gray-400 text-white text-sm font-mono p-1 rounded-lg overflow-x-auto">
+                        {% if file.status == "Available" %}
+                           <span class="text-red-400 bg-black mr-2 rounded-sm"> ✅ {{ file.region }} </span>
+                        {% else %}
+                           <span class="text-red-400 bg-black mr-2 rounded-sm"> ❌ {{ file.region }} </span>
+                        {% endif %}
+
+                    <code class="select-all"> {{ file.file_url }}</code>
+                </div>
+            {% endfor %}
+        {% endif %}
 
         <p class="font-semibold my-2">Size:
             <span class="text-gray-600">{{ file_metadata.file_size |filesizeformat }}</span>
@@ -32,15 +35,19 @@
         <p class="font-semibold my-2">Content-type:
             <span class="text-gray-600">{{ file_metadata.content_type }}</span>
         </p>
+
         <p class="font-semibold my-2">ETAG:
             <span class="text-gray-600">{{ file_metadata.etag }}</span>
         </p>
         <p class="font-semibold my-2">Checksum (SHA-256):
             <span class="text-gray-600">{{ file_metadata.checksum }}</span>
         </p>
-        <p class="font-semibold my-2">Uploaded By:
-            <span class="text-gray-600">{{ file_metadata.uploaded_by }}</span>
-        </p>
+
+        {% if request.user.is_staff %}
+            <p class="font-semibold my-2">Uploaded By:
+                <span class="text-gray-600">{{ file_metadata.uploaded_by }}</span>
+            </p>
+        {% endif %}
         <p class="font-semibold my-2">Last Modified:
             <span class="text-gray-600">{{ file_metadata.uploaded_at }}</span>
         </p>
@@ -74,7 +81,7 @@
         </table>
         {% endif %}
 
-        {% if is_image %}
+        {% if file_metadata.is_image %}
             <p class="font-semibold my-2">File Preview:</p>
             <div class="flex">
                <div class="container__img-holder max-w-4/5 rounded-xl bg-gray-950/5 opacity-85 overflow-hidden p-sm">

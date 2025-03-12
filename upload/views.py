@@ -23,15 +23,19 @@ def file_upload(request):
         files = request.FILES.getlist('file-upload')
         errors = []
 
-        for upload_file in files:
+        if len(files) == 0:
+            errors.append(f"Please select at least one file before uploading.")
 
-            # Validate filename length
-            if len(upload_file.name) > MAX_FILENAME_LENGTH:
-                errors.append(f"File name cannot exceed 128 characters.")
+        else:
+            for upload_file in files:
 
-            # Validate file size
-            if upload_file.size > MAX_FILE_SIZE:
-                errors.append(f"File size exceeds 500MB limit.")
+                # Validate filename length
+                if len(upload_file.name) > MAX_FILENAME_LENGTH:
+                    errors.append(f"File name cannot exceed 128 characters.")
+
+                # Validate file size
+                if upload_file.size > MAX_FILE_SIZE:
+                    errors.append(f"File size exceeds 500MB limit.")
 
         if errors:
             return render(request, 'upload_resp.html', {"errors": errors}) # Return errors if any
@@ -78,11 +82,7 @@ def file_detail(request, file_id):
     """Displays chunk details for a specific file."""
     file_metadata = get_object_or_404(FileMetadata, id=file_id)
 
-    # Allowed image extensions
-    image_extensions = {".jpg", ".jpeg", ".png", ".gif", ".webp"}
-
     file_name = file_metadata.file_name
-    is_image = any(file_name.lower().endswith(ext) for ext in image_extensions)
 
     # Fetch chunks related to this file
     chunks = FileChunk.objects.filter(file_metadata=file_metadata).order_by('chunk_index')
@@ -94,8 +94,7 @@ def file_detail(request, file_id):
         file_url = f"http://{node.access_url}/{file_name}"
         distributed_files.append({"status": status, "file_url": file_url, "region": node.region})
 
-    return render(request, 'detail.html', {'file_metadata': file_metadata, 'chunks': chunks,
-        'is_image': is_image, "distributed_files": distributed_files})
+    return render(request, 'detail.html', {'file_metadata': file_metadata, 'chunks': chunks, "distributed_files": distributed_files})
 
 @login_required(login_url='/login/')
 def file_delete(request, file_id):

@@ -45,7 +45,6 @@
             const dropZone = document.getElementById("drop-zone");
             const fileInput = document.getElementById("file-upload");
             const fileList = document.getElementById("file-list");
-            const uploadForm = document.getElementById("upload-form");
             const cancelButton = document.getElementById("cancel-button");
 
             // Drag over effect
@@ -72,8 +71,10 @@
             });
 
             function handleFileUpload(files) {
+                const dataTransfer = new DataTransfer(); // Allows modification of FileList
                 fileList.innerHTML = ""; // Clear the previous list
                 for (let file of files) {
+                    dataTransfer.items.add(file); // Add file to DataTransfer
                     const listItem = document.createElement("div");
                     listItem.classList.add("flex", "items-center", "mt-2", "bg-gray-200", "p-2", "rounded-lg");
                     listItem.innerHTML = `
@@ -89,27 +90,13 @@
                         listItem.remove();
                     });
                 }
+                fileInput.files = dataTransfer.files; // Assign modified FileList to input
             }
 
             // Cancel Button Clears the File List
             cancelButton.addEventListener("click", function () {
                 fileList.innerHTML = ""; // Clear the file list
                 fileInput.value = ""; // Reset file input
-            });
-
-            // Prevent submitting empty form
-            uploadForm.addEventListener("submit", function (event) {
-                event.preventDefault();
-
-                const fileInput = document.getElementById("file-upload");
-                if (!fileInput.files.length) {
-                        event.preventDefault();
-                        Swal.fire({
-                          icon: "error",
-                          title: "Oops...",
-                          text: "Please select at least one file before uploading.",
-                        });
-                }
             });
         });
 

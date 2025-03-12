@@ -20,6 +20,11 @@ class FileMetadata(models.Model):
     def __str__(self):
         return f"File {self.file_name} size of {convert_size(self.file_size)} bytes uploaded by {self.uploaded_by.username} at {self.uploaded_at}"
 
+    @property
+    def is_image(self):
+        # Allowed image extensions
+        image_extensions = {".jpg", ".jpeg", ".png", ".gif", ".webp"}
+        return any(self.file_name.lower().endswith(ext) for ext in image_extensions)
 
 class FileChunk(models.Model):
     """Stores individual file chunks for a larger file."""
