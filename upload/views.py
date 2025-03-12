@@ -120,7 +120,21 @@ def load_storage(request):
     paginator = Paginator(uploads_list, 20)  # Show 10 files per page
     page_number = request.GET.get('page', 1)
     uploads = paginator.get_page(page_number)
-    return render(request, 'storage.html', {'uploads': uploads})
+    total = len(uploads_list)
+    return render(request, 'storage.html', {'uploads': uploads, "total": total})
+
+
+@login_required(login_url='/login/')
+def admin_dashboard(request):
+    uploads_list = FileMetadata.objects.all() if request.user.is_staff else FileMetadata.objects.filter(uploaded_by=request.user)
+
+    # Pagination setup
+    paginator = Paginator(uploads_list, 20)  # Show 10 files per page
+    page_number = request.GET.get('page', 1)
+    uploads = paginator.get_page(page_number)
+    total = len(uploads_list)
+    nodes = node_manager.get_all_nodes()
+    return render(request, 'dashboard.html', {'uploads': uploads, "total": total, "nodes": nodes})
 
 
 def user_login(request):

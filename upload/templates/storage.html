@@ -8,8 +8,8 @@
         <h1 class="text-3xl font-bold mb-6 text-center">Object Storage</h1>
         <hr class="mb-4">
         {% csrf_token %}
-        {% if uploads %}
-        <h2 class="text-xl font-semibold mt-6">Your Uploaded Files</h2>
+        {% if uploads and total %}
+        <h2 class="text-xl font-semibold mt-6">Your Uploaded Files - <span class="text-gray-500">{{ total }} objects</span></h2>
         <table class="sortable table-auto w-full my-4 border-collapse border border-gray-300">
             <thead>
                 <tr class="bg-gray-200">
