@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Upload{% endblock %}
 
@@ -7,7 +8,7 @@
     <div class="bg-white p-8 rounded-lg shadow-lg w-full min-w-2/3 max-w-max">
         <h2 class="text-3xl font-bold mb-6 text-center">Upload Your File</h2>
         <!-- Upload Form -->
-        <form id="upload-form" action="{% url 'upload' %}" method="post" enctype="multipart/form-data" class="space-y-4">
+        <form id="upload-form" hx-post="{% url 'upload' %}" hx-target="#upload-results" enctype="multipart/form-data" class="space-y-4">
             {% csrf_token %}
 
             <!-- Drag and Drop Zone -->
@@ -25,8 +26,9 @@
 
             <!-- Submission Buttons -->
             <div class="flex justify-center">
-                <button type="submit" id="upload-button" class="w-32 mx-2 bg-blue-500 text-white py-2 rounded hover:bg-blue-700 cursor-pointer">
+                <button type="submit" hx-confirm="Some confirm text here" id="upload-button" class="flex justify-center w-32 mx-2 bg-blue-500 text-white py-2 rounded hover:bg-blue-700 cursor-pointer">
                     Add
+                    <img class="htmx-indicator pl-1 color-white"  src="{% static 'bars.svg' %}" />
                 </button>
                 <button type="button" id="cancel-button" class="w-32 mx-2 bg-gray-400 text-white py-2 rounded hover:bg-gray-500 cursor-pointer">
                     Cancel
@@ -34,30 +36,7 @@
             </div>
         </form>
          <!-- Uploaded Files List -->
-        {% if uploaded_files %}
-            <div class="mt-6">
-                <h3 class="text-lg font-bold">Uploaded Files</h3>
-                <ul class="mt-2">
-                    {% for file in uploaded_files %}
-                        <li class="flex items-center mt-2 bg-gray-200 p-2 rounded-lg">
-                            📄 <a href="{{ file.file_url }}" class="text-blue-500 ml-2 truncate">{{ file.file_name }}</a>
-                        </li>
-                    {% endfor %}
-                </ul>
-            </div>
-            <script>
-                document.addEventListener("DOMContentLoaded", (event) => {
-                    Toastify({
-                        text: "File(s) uploaded successfully!",
-                        className: "info",
-                        duration: 3000,
-                        gravity: "bottom", // `top` or `bottom`
-                    }).showToast();
-                });
-            </script>
-        {% endif %}
-
-
+        <div id="upload-results"></div>
     </div>
 </div>
 
@@ -120,20 +99,19 @@
 
             // Prevent submitting empty form
             uploadForm.addEventListener("submit", function (event) {
-                if (!fileInput.files.length) {
-                    event.preventDefault();
-                    alert("Please select at least one file before uploading.");
-                }
+                event.preventDefault();
 
-                const maxSize = 500 * 1024 * 1024; // 500MB in bytes
-                for (let i = 0; i < fileInput.files.length; i++) {
-                    if (fileInput.files[i].size > maxSize) {
-                        alert("⚠️ File exceeds 500MB limit.");
-                        event.preventDefault(); // Stop form submission
-                        return;
-                    }
+                const fileInput = document.getElementById("file-upload");
+                if (!fileInput.files.length) {
+                        event.preventDefault();
+                        Swal.fire({
+                          icon: "error",
+                          title: "Oops...",
+                          text: "Please select at least one file before uploading.",
+                        });
                 }
             });
         });
+
     </script>
 {% endblock %}

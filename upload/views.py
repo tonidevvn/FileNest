@@ -1,3 +1,4 @@
+import time
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect, get_object_or_404
@@ -9,45 +10,67 @@ from helpers.minio.node import node_manager
 from helpers.minio.storage import minio_upload, minio_remove
 from .models import FileMetadata, FileChunk
 
+
+MAX_FILE_SIZE = 500 * 1024 * 1024  # 500MB in bytes
+MAX_FILENAME_LENGTH = 128  # Maximum file name length
+
 @login_required(login_url='/login/')
 def file_upload(request):
     """Handles multiple file uploads and ensures file list updates correctly."""
     uploaded_files = []
     if request.method == 'POST':
         files = request.FILES.getlist('file-upload')
+        errors = []
 
-        for fileUpload in files:
-            if fileUpload:
-                file_name, file_url, etag, chunk_count, chunk_parts, checksum = minio_upload(fileUpload)
+        for upload_file in files:
 
-                # Store metadata (e.g., number of chunks) in your Django model
-                file_metadata = FileMetadata.objects.create(
-                    file_name=file_name,
-                    file_url=file_url,
-                    file_size=fileUpload.size,
-                    etag=etag,
-                    location=settings.MINIO_BUCKET_NAME,
-                    uploaded_by=request.user,
-                    total_chunks=chunk_count,
-                    content_type=fileUpload.content_type,
-                    checksum=checksum,
-                )
+            # Validate filename length
+            if len(upload_file.name) > MAX_FILENAME_LENGTH:
+                errors.append(f"File name cannot exceed 128 characters.")
 
-                if chunk_count > 1:
-                    for i in range(chunk_count):
-                        # Save chunk record
-                        chunk_part_i = chunk_parts[i]
-                        FileChunk.objects.create(
-                            file_metadata=file_metadata,
-                            chunk_index=i,
-                            chunk_file=chunk_part_i.get("name"),
-                            chunk_size=chunk_part_i.get("size"),
-                            etag=chunk_part_i.get("etag"),
-                        )
+            # Validate file size
+            if upload_file.size > MAX_FILE_SIZE:
+                errors.append(f"File size exceeds 500MB limit.")
 
-                uploaded_files.append({"file_url": f'/detail/{file_metadata.id}', "file_name": file_name})
+        if errors:
+            return render(request, 'upload_resp.html', {"errors": errors}) # Return errors if any
 
-    return render(request, 'upload.html', {'uploaded_files': uploaded_files})
+        else:
+            for fileUpload in files:
+                if fileUpload:
+                    file_name, file_url, etag, chunk_count, chunk_parts, checksum = minio_upload(fileUpload)
+
+                    # Store metadata (e.g., number of chunks) in your Django model
+                    file_metadata = FileMetadata.objects.create(
+                        file_name=file_name,
+                        file_url=file_url,
+                        file_size=fileUpload.size,
+                        etag=etag,
+                        location=settings.MINIO_BUCKET_NAME,
+                        uploaded_by=request.user,
+                        total_chunks=chunk_count,
+                        content_type=fileUpload.content_type,
+                        checksum=checksum,
+                    )
+
+                    if chunk_count > 1:
+                        for i in range(chunk_count):
+                            # Save chunk record
+                            chunk_part_i = chunk_parts[i]
+                            FileChunk.objects.create(
+                                file_metadata=file_metadata,
+                                chunk_index=i,
+                                chunk_file=chunk_part_i.get("name"),
+                                chunk_size=chunk_part_i.get("size"),
+                                etag=chunk_part_i.get("etag"),
+                            )
+
+                    uploaded_files.append({"file_url": f'/detail/{file_metadata.id}', "file_name": file_name})
+                    time.sleep(0.5)
+
+            return render(request, 'upload_resp.html', {'uploaded_files': uploaded_files})
+    else:
+        return render(request, 'upload.html')
 
 @login_required(login_url='/login/')
 def file_detail(request, file_id):

@@ -23,8 +23,9 @@ from django.conf.urls.static import static
 from api.views import *
 
 urlpatterns = ([
-    path('', file_upload, name='upload'),
-    path('storage', load_storage, name='storage'),
+    path('', file_upload, name='home'),
+    path('upload/', file_upload, name='upload'),
+    path('storage/', load_storage, name='storage'),
     path('detail/<str:file_id>/', file_detail, name='detail'),
     path('delete/<str:file_id>/', file_delete, name='delete_file'),
     path('login/', user_login, name='login'),
