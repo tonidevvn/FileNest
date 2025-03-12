@@ -5,6 +5,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
+from django.core.paginator import Paginator
 
 from helpers.minio.node import node_manager
 from helpers.minio.storage import minio_upload, minio_remove
@@ -114,9 +115,12 @@ def file_delete(request, file_id):
 
 @login_required(login_url='/login/')
 def load_storage(request):
-    # Refresh the file list after any operation
-    uploads = FileMetadata.objects.all() if request.user.is_staff else FileMetadata.objects.filter(
-        uploaded_by=request.user)
+    uploads_list = FileMetadata.objects.all() if request.user.is_staff else FileMetadata.objects.filter(uploaded_by=request.user)
+
+    # Pagination setup
+    paginator = Paginator(uploads_list, 20)  # Show 10 files per page
+    page_number = request.GET.get('page', 1)
+    uploads = paginator.get_page(page_number)
     return render(request, 'storage.html', {'uploads': uploads})
 
 
