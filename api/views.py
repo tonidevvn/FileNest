@@ -89,22 +89,22 @@ def api_upload_file(request):
             {"error": "No file provided"}, status=status.HTTP_400_BAD_REQUEST
         )
 
-    upload_file = request.FILES["upload_file"]
-    if upload_file:
+    file_upload = request.FILES["file-upload"]
+    if file_upload:
         file_name, file_url, etag, chunk_count, chunk_parts, checksum = minio_upload(
-            upload_file
+            file_upload
         )
 
         # Store metadata (e.g., number of chunks) in your Django model
         file_obj = FileMetadata.objects.create(
             file_name=file_name,
             file_url=file_url,
-            file_size=upload_file.size,
+            file_size=file_upload.size,
             etag=etag,
             location=settings.MINIO_BUCKET_NAME,
             uploaded_by=request.user,
             total_chunks=chunk_count,
-            content_type=upload_file.content_type,
+            content_type=file_upload.content_type,
             checksum=checksum,
         )
 

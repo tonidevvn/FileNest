@@ -25,8 +25,8 @@ from api.views import *
 urlpatterns = ([
     path('', file_upload, name='upload'),
     path('storage', load_storage, name='storage'),
-    path('detail/<str:file_id>/', detail, name='detail'),
-    path('delete/<str:file_id>/', delete_file, name='delete_file'),
+    path('detail/<str:file_id>/', file_detail, name='detail'),
+    path('delete/<str:file_id>/', file_delete, name='delete_file'),
     path('login/', user_login, name='login'),
     path('signup/', user_signup, name='signup'),
     path('logout/', user_logout, name='logout'),

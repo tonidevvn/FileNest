@@ -11,46 +11,46 @@ from .models import FileMetadata, FileChunk
 
 @login_required(login_url='/login/')
 def file_upload(request):
-    """Handles file upload and ensures the file list updates correctly."""
-    file_url = ""
+    """Handles multiple file uploads and ensures file list updates correctly."""
+    uploaded_files = []
     if request.method == 'POST':
-        upload_file = request.FILES.get('upload_file')
+        files = request.FILES.getlist('file-upload')
 
-        if upload_file:
-            file_name, file_url, etag, chunk_count, chunk_parts, checksum = minio_upload(upload_file)
+        for fileUpload in files:
+            if fileUpload:
+                file_name, file_url, etag, chunk_count, chunk_parts, checksum = minio_upload(fileUpload)
 
-            # Store metadata (e.g., number of chunks) in your Django model
-            file_metadata = FileMetadata.objects.create(
-                file_name=file_name,
-                file_url=file_url,
-                file_size=upload_file.size,
-                etag=etag,
-                location=settings.MINIO_BUCKET_NAME,
-                uploaded_by=request.user,
-                total_chunks=chunk_count,
-                content_type=upload_file.content_type,
-                checksum=checksum,
-            )
+                # Store metadata (e.g., number of chunks) in your Django model
+                file_metadata = FileMetadata.objects.create(
+                    file_name=file_name,
+                    file_url=file_url,
+                    file_size=fileUpload.size,
+                    etag=etag,
+                    location=settings.MINIO_BUCKET_NAME,
+                    uploaded_by=request.user,
+                    total_chunks=chunk_count,
+                    content_type=fileUpload.content_type,
+                    checksum=checksum,
+                )
 
-            if chunk_count > 1:
-                for i in range(chunk_count):
-                    # Save chunk record
-                    chunk_part_i = chunk_parts[i]
-                    FileChunk.objects.create(
-                        file_metadata=file_metadata,
-                        chunk_index=i,
-                        chunk_file=chunk_part_i.get("name"),
-                        chunk_size=chunk_part_i.get("size"),
-                        etag=chunk_part_i.get("etag"),
-                    )
+                if chunk_count > 1:
+                    for i in range(chunk_count):
+                        # Save chunk record
+                        chunk_part_i = chunk_parts[i]
+                        FileChunk.objects.create(
+                            file_metadata=file_metadata,
+                            chunk_index=i,
+                            chunk_file=chunk_part_i.get("name"),
+                            chunk_size=chunk_part_i.get("size"),
+                            etag=chunk_part_i.get("etag"),
+                        )
 
-    # Refresh the file list after any operation
-    uploads = FileMetadata.objects.all() if request.user.is_staff else FileMetadata.objects.filter(
-        uploaded_by=request.user)
-    return render(request, 'upload.html', {'file_url': file_url, 'uploads': uploads})
+                uploaded_files.append({"file_url": f'/detail/{file_metadata.id}', "file_name": file_name})
+
+    return render(request, 'upload.html', {'uploaded_files': uploaded_files})
 
 @login_required(login_url='/login/')
-def detail(request, file_id):
+def file_detail(request, file_id):
     """Displays chunk details for a specific file."""
     file_metadata = get_object_or_404(FileMetadata, id=file_id)
 
@@ -74,7 +74,7 @@ def detail(request, file_id):
         'is_image': is_image, "distributed_files": distributed_files})
 
 @login_required(login_url='/login/')
-def delete_file(request, file_id):
+def file_delete(request, file_id):
     """Deletes a file from the database and cloud storage."""
     file_obj = get_object_or_404(FileMetadata, id=file_id)
 
