@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Log Monitoring{% endblock %}
+
+{% block content %}
+<div class="container mx-auto mt-8">
+    <h1 class="text-2xl font-bold mb-4">File Access and Operations Log</h1>
+    <table class="table-auto w-full border-collapse border border-gray-300">
+        <thead>
+            <tr class="bg-gray-200">
+                <th class="border px-4 py-2">User</th>
+                <th class="border px-4 py-2">File Name</th>
+                <th class="border px-4 py-2">Action</th>
+                <th class="border px-4 py-2">Timestamp</th>
+                <th class="border px-4 py-2">IP Address</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for log in logs %}
+            <tr class="bg-white">
+                <td class="border px-4 py-2">{{ log.user }}</td>
+                <td class="border px-4 py-2">{{ log.file_name }}</td>
+                <td class="border px-4 py-2">{{ log.get_action_display }}</td>
+                <td class="border px-4 py-2">{{ log.timestamp }}</td>
+                <td class="border px-4 py-2">{{ log.ip_address }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

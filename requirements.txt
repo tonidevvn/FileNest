@@ -1,5 +1,5 @@
-pip~=25.0
-Django~=5.1.5
+pip~=25.0.1
+Django~=4.2.20
 asgiref~=3.8.1
 sqlparse~=0.5.3
 boto3>=1.36.9

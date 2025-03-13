@@ -41,3 +41,20 @@ class FileChunk(models.Model):
 
     def __str__(self):
         return f"Chunk {self.chunk_index} of {self.file_metadata.etag}"
+
+class FileAccessLog(models.Model):
+    ACTION_CHOICES = [
+        ('UPLOAD', 'Upload'),
+        ('DOWNLOAD', 'Download'),
+        ('DELETE', 'Delete'),
+        ('VIEW', 'View Details'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    file_name = models.CharField(max_length=255)
+    action = models.CharField(max_length=10, choices=ACTION_CHOICES)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.user} {self.action} {self.file_name} at {self.timestamp}"

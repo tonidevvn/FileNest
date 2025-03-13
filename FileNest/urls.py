@@ -32,6 +32,7 @@ urlpatterns = ([
     path('login/', user_login, name='login'),
     path('signup/', user_signup, name='signup'),
     path('logout/', user_logout, name='logout'),
+    path('admin_logs/', admin_log_monitoring, name='admin_logs'),
     path('admin/', admin.site.urls),
     path('api/', include('api.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT))
