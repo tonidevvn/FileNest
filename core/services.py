@@ -72,9 +72,9 @@ class FileService:
                 chunk = FileChunk.objects.create(
                     file_metadata=file_metadata,
                     chunk_index=i,
-                    chunk_file=chunk_part.get("name"),
-                    chunk_size=chunk_part.get("size"),
-                    etag=chunk_part.get("etag"),
+                    chunk_file=chunk_part.part_number,
+                    chunk_size=chunk_part.size,
+                    etag=chunk_part.etag,
                 )
                 chunks.append(chunk)
 
