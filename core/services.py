@@ -120,15 +120,13 @@ class FileService:
         return page_obj, total
 
     @staticmethod
-    def download_file(file_id: str, user: User, use_cache: bool = True) -> HttpResponse:
+    def download_file(file_id: str, user: User) -> HttpResponse:
         """Download file with permission check."""
         file_obj = FileMetadata.objects.get(id=file_id)
         if file_obj.uploaded_by != user and not user.is_staff:
             raise PermissionDenied("Unauthorized access")
 
-        file_data, file_size, content_type = minio_download(
-            file_obj, use_cache=use_cache
-        )
+        file_data, file_size, content_type = minio_download(file_obj)
 
         response = HttpResponse(file_data, content_type=content_type)
         response["Content-Disposition"] = (

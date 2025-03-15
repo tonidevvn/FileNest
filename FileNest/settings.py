@@ -197,17 +197,17 @@ USE_TZ = True
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# Cache configuration
-CACHES = {
-    "default": {
-        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-        "LOCATION": "filenest-cache",
-        "TIMEOUT": 3600,  # 1 hour default timeout
-        "OPTIONS": {
-            "MAX_ENTRIES": 1000,  # Maximum number of entries in the cache
-        },
-    }
-}
+# Cache configuration - REMOVED
+# CACHES = {
+#     "default": {
+#         "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+#         "LOCATION": "filenest-cache",
+#         "TIMEOUT": 3600,  # 1 hour default timeout
+#         "OPTIONS": {
+#             "MAX_ENTRIES": 1000,  # Maximum number of entries in the cache
+#         },
+#     }
+# }
 
 # For production environments, consider using Redis or Memcached:
 # CACHES = {
@@ -220,7 +220,7 @@ CACHES = {
 #     }
 # }
 
-# File cache settings
-FILE_CACHE_TIMEOUT = 3600  # Cache files for 1 hour
-FILE_CACHE_PREFIX = "file_cache_"
-MAX_CACHED_FILE_SIZE = 5 * 1024 * 1024  # 5MB max size for cached files
+# File cache settings - REMOVED
+# FILE_CACHE_TIMEOUT = 3600  # Cache files for 1 hour
+# FILE_CACHE_PREFIX = "file_cache_"
+# MAX_CACHED_FILE_SIZE = 5 * 1024 * 1024  # 5MB max size for cached files

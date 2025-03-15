@@ -160,8 +160,7 @@ def list_files(request):
 def download_file(request, file_id):
     """Download a file for authenticated users."""
     try:
-        use_cache = request.GET.get("no_cache", "0") != "1"
-        return FileService.download_file(file_id, request.user, use_cache)
+        return FileService.download_file(file_id, request.user)
     except Exception as e:
         return create_response(
             success=False,
