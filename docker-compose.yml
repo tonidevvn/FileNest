@@ -1,122 +1,102 @@
+version: "3.8"
+
+x-minio-common: &minio-common
+  image: minio/minio:latest
+  environment: &minio-common-env
+    MINIO_ROOT_USER: admin
+    MINIO_ROOT_PASSWORD: minioadmin
+    MINIO_BROWSER_REDIRECT_URL: http://localhost:9090
+  healthcheck:
+    test: ["CMD", "mc", "ready", "local"]
+    interval: 30s
+    timeout: 20s
+    retries: 3
+
 services:
   minio1:
-    image: minio/minio
-    container_name: asia-minio
+    <<: *minio-common
+    hostname: minio1
+    container_name: minio1
     ports:
       - "9000:9000"
       - "9090:9090"
-    environment:
-      MINIO_ACCESS_KEY: admin
-      MINIO_SECRET_KEY: minioadmin
-      MINIO_ROOT_USER: admin
-      MINIO_ROOT_PASSWORD: minioadmin
-      MINIO_SITE_NAME: asia-site
-      MINIO_SITE_REGION: asia
-      MINIO_LOGGER_WEBHOOK_ENABLE: on
-      MINIO_LOGGER_WEBHOOK_ENDPOINT: http://fluent-bit:24224
     volumes:
-      - minio1:/data
-    command: server --console-address ":9090" /data
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-      interval: 30s
-      timeout: 20s
-      retries: 3
+      - minio1-data-1:/data1
+      - minio1-data-2:/data2
+      - minio1-data-3:/data3
+      - minio1-data-4:/data4
+    command: server --console-address ":9090" http://minio{1...3}/data{1...4} --address ":9000"
+    environment:
+      <<: *minio-common-env
     networks:
       - minio-network
 
   minio2:
-    image: minio/minio
-    container_name: america-minio
+    <<: *minio-common
+    hostname: minio2
+    container_name: minio2
     ports:
       - "9001:9000"
       - "9091:9090"
-    environment:
-      MINIO_ACCESS_KEY: admin
-      MINIO_SECRET_KEY: minioadmin
-      MINIO_ROOT_USER: admin
-      MINIO_ROOT_PASSWORD: minioadmin
-      MINIO_SITE_NAME: america-site
-      MINIO_SITE_REGION: us-east
-      MINIO_LOGGER_WEBHOOK_ENABLE: on
-      MINIO_LOGGER_WEBHOOK_ENDPOINT: http://fluent-bit:24224
     volumes:
-      - minio2:/data
-    command: server --console-address ":9090" /data
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-      interval: 30s
-      timeout: 20s
-      retries: 3
+      - minio2-data-1:/data1
+      - minio2-data-2:/data2
+      - minio2-data-3:/data3
+      - minio2-data-4:/data4
+    command: server --console-address ":9090" http://minio{1...3}/data{1...4} --address ":9000"
+    environment:
+      <<: *minio-common-env
     networks:
       - minio-network
 
-  setup-replication:
+  minio3:
+    <<: *minio-common
+    hostname: minio3
+    container_name: minio3
+    ports:
+      - "9002:9000"
+      - "9092:9090"
+    volumes:
+      - minio3-data-1:/data1
+      - minio3-data-2:/data2
+      - minio3-data-3:/data3
+      - minio3-data-4:/data4
+    command: server --console-address ":9090" http://minio{1...3}/data{1...4} --address ":9000"
+    environment:
+      <<: *minio-common-env
+    networks:
+      - minio-network
+
+  setup:
     image: minio/mc
-    container_name: setup-replication
     depends_on:
       minio1:
         condition: service_healthy
       minio2:
         condition: service_healthy
+      minio3:
+        condition: service_healthy
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: minioadmin
     entrypoint: >
       /bin/sh -c "
-      echo 'Waiting for MinIO instances to be fully ready...' &&
-      sleep 15 &&
-      mc alias set minio1 http://minio1:9000 admin minioadmin &&
-      mc alias set minio2 http://minio2:9000 admin minioadmin &&
-      echo 'Setting up site replication...' &&
-      mc admin replicate add minio1 minio2 &&
-      echo 'Creating test bucket...' &&
-      mc mb minio1/bucket
+      sleep 10;
+
+      mc alias set minio1 http://minio1:9000 admin minioadmin;
+      mc alias set minio2 http://minio2:9000 admin minioadmin;
+      mc alias set minio3 http://minio3:9000 admin minioadmin;
+
+      mc mb minio1/bucket;
+
+      # Create test file
+      echo 'Test content' > test.txt;
+      mc cp test.txt minio1/bucket/;
+
+      # List the bucket contents
+      echo 'Listing bucket contents:';
+      mc ls minio1/bucket/;
       "
-    networks:
-      - minio-network
-    restart: "no"
-
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.3
-    ports:
-      - "9200:9200"
-    environment:
-      - discovery.type=single-node
-      - xpack.security.enabled=false
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-    volumes:
-      - esdata1:/usr/share/elasticsearch/data
-    healthcheck:
-      test: curl -s http://localhost:9200 >/dev/null; if [[ $$? == 52 ]]; then echo healthy; else echo unhealthy; exit 1; fi
-      interval: 30s
-      timeout: 10s
-      retries: 5
-    networks:
-      - minio-network
-
-  kibana:
-    image: docker.elastic.co/kibana/kibana:8.11.3
-    container_name: kibana
-    environment:
-      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-    ports:
-      - "5601:5601"
-    depends_on:
-      - elasticsearch
-    networks:
-      - minio-network
-
-  fluent-bit:
-    image: fluent/fluent-bit:latest
-    volumes:
-      - ./fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf
-    ports:
-      - "24224:24224"
-    depends_on:
-      - elasticsearch
-    healthcheck:
-      test: [ "CMD", "fluent-bit", "-t" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
     networks:
       - minio-network
 
@@ -125,9 +105,15 @@ networks:
     driver: bridge
 
 volumes:
-  minio1:
-    driver: local
-  minio2:
-    driver: local
-  esdata1:
-    driver: local
+  minio1-data-1:
+  minio1-data-2:
+  minio1-data-3:
+  minio1-data-4:
+  minio2-data-1:
+  minio2-data-2:
+  minio2-data-3:
+  minio2-data-4:
+  minio3-data-1:
+  minio3-data-2:
+  minio3-data-3:
+  minio3-data-4:

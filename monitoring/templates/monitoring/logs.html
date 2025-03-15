@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <h1 class="title">File Access Logs</h1>
+
+    <!-- Filters -->
+    <div class="box">
+        <form method="get" class="field is-grouped">
+            <div class="control">
+                <div class="select">
+                    <select name="action" onchange="this.form.submit()">
+                        <option value="">All Actions</option>
+                        {% for code, name in action_choices %}
+                        <option value="{{ code }}" {% if code == selected_action %}selected{% endif %}>
+                            {{ name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="control">
+                <input class="input" type="text" name="username" placeholder="Filter by username" 
+                       value="{{ username_filter|default:'' }}">
+            </div>
+            <div class="control">
+                <button type="submit" class="button is-primary">Filter</button>
+            </div>
+            <div class="control">
+                <a href="{% url 'monitoring:logs' %}" class="button is-light">Clear Filters</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Logs Table -->
+    <div class="table-container">
+        <table class="table is-fullwidth is-striped">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Action</th>
+                    <th>File Name</th>
+                    <th>IP Address</th>
+                    <th>Timestamp</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                <tr>
+                    <td>{{ log.user.username }}</td>
+                    <td>
+                        <span class="tag 
+                            {% if log.action == 'UPLOAD' %}is-success
+                            {% elif log.action == 'DOWNLOAD' %}is-info
+                            {% elif log.action == 'DELETE' %}is-danger
+                            {% else %}is-light{% endif %}">
+                            {{ log.get_action_display }}
+                        </span>
+                    </td>
+                    <td>{{ log.file_name }}</td>
+                    <td>{{ log.ip_address|default:"Unknown" }}</td>
+                    <td>{{ log.timestamp|date:"Y-m-d H:i:s" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="has-text-centered">No logs found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if logs.has_other_pages %}
+    <nav class="pagination is-centered" role="navigation" aria-label="pagination">
+        {% if logs.has_previous %}
+        <a href="?page={{ logs.previous_page_number }}{% if selected_action %}&action={{ selected_action }}{% endif %}{% if username_filter %}&username={{ username_filter }}{% endif %}" 
+           class="pagination-previous">Previous</a>
+        {% endif %}
+        
+        {% if logs.has_next %}
+        <a href="?page={{ logs.next_page_number }}{% if selected_action %}&action={{ selected_action }}{% endif %}{% if username_filter %}&username={{ username_filter }}{% endif %}" 
+           class="pagination-next">Next</a>
+        {% endif %}
+        
+        <ul class="pagination-list">
+            {% for num in logs.paginator.page_range %}
+                {% if logs.number == num %}
+                <li><a class="pagination-link is-current" aria-label="Page {{ num }}" aria-current="page">{{ num }}</a></li>
+                {% else %}
+                <li><a href="?page={{ num }}{% if selected_action %}&action={{ selected_action }}{% endif %}{% if username_filter %}&username={{ username_filter }}{% endif %}" 
+                       class="pagination-link" aria-label="Goto page {{ num }}">{{ num }}</a></li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

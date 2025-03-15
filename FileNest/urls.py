@@ -1,38 +1,16 @@
-"""
-URL configuration for FileNest project.
+"""URL configuration for FileNest project."""
 
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/5.1/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
 from django.conf import settings
-from django.contrib import admin
-from django.urls import path, include
-from upload.views import *
-from api.views import *
 from django.conf.urls.static import static
-from api.views import *
+from django.contrib import admin
+from django.urls import include, path
 
-urlpatterns = ([
-    path('', file_upload, name='home'),
-    path('upload/', file_upload, name='upload'),
-    path('storage/', load_storage, name='storage'),
-    path('dashboard/', admin_dashboard, name='dashboard'),
-    path('detail/<str:file_id>/', file_detail, name='detail'),
-    path('delete/<str:file_id>/', file_delete, name='delete_file'),
-    path('login/', user_login, name='login'),
-    path('signup/', user_signup, name='signup'),
-    path('logout/', user_logout, name='logout'),
-    path('admin_logs/', admin_log_monitoring, name='admin_logs'),
-    path('admin/', admin.site.urls),
-    path('api/', include('api.urls')),
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT))
+urlpatterns = [
+    # Admin and API URLs
+    path("admin/", admin.site.urls),
+    path("api/", include("api.urls", namespace="api")),
+    # Main app URLs
+    path("", include("web.urls", namespace="web")),
+    # Monitoring URLs
+    path("monitoring/", include("monitoring.urls", namespace="monitoring")),
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
