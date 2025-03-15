@@ -9,7 +9,12 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.core.paginator import Paginator
 
-from helpers.minio.node import node_manager
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.core.paginator import Paginator
+
+from core.minio.node import node_manager
 from core.services import FileService
 from monitoring.utils import log_file_action
 

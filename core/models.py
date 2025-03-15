@@ -1,28 +1,35 @@
 """Core models for FileNest."""
-from django.db import models
-from django.contrib.auth.models import User
+
 import uuid
-from helpers.minio.filestat import convert_size
+
+from django.contrib.auth.models import User
+from django.db import models
+
+from core.minio.filestat import convert_size
+
 
 class FileMetadata(models.Model):
     """Model for storing file metadata and location information."""
+
     id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False)
     file_name = models.CharField(max_length=255)
     file_url = models.CharField(max_length=255, null=True, blank=True)
     file_size = models.IntegerField(null=True, blank=True)
     content_type = models.CharField(max_length=255, null=True, blank=True)
     etag = models.CharField(max_length=255, null=True, blank=True)
-    uploaded_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='core_files')
+    uploaded_by = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="core_files"
+    )
     uploaded_at = models.DateTimeField(auto_now_add=True)
     location = models.CharField(max_length=255, null=True, blank=True)
     total_chunks = models.IntegerField(default=0)
     checksum = models.CharField(max_length=64, blank=True)
 
     class Meta:
-        ordering = ['-uploaded_at']
+        ordering = ["-uploaded_at"]
         indexes = [
-            models.Index(fields=['-uploaded_at']),
-            models.Index(fields=['uploaded_by', '-uploaded_at']),
+            models.Index(fields=["-uploaded_at"]),
+            models.Index(fields=["uploaded_by", "-uploaded_at"]),
         ]
 
     def __str__(self):
@@ -43,10 +50,14 @@ class FileMetadata(models.Model):
         parts = self.file_name.split("-", 1)
         return parts[1] if len(parts) > 1 else self.file_name
 
+
 class FileChunk(models.Model):
     """Model for storing individual file chunks for large file uploads."""
+
     id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False)
-    file_metadata = models.ForeignKey(FileMetadata, on_delete=models.CASCADE, related_name='chunks')
+    file_metadata = models.ForeignKey(
+        FileMetadata, on_delete=models.CASCADE, related_name="chunks"
+    )
     chunk_index = models.IntegerField()
     chunk_file = models.CharField(max_length=255, null=True, blank=True)
     chunk_size = models.IntegerField(null=True, blank=True)
@@ -54,10 +65,10 @@ class FileChunk(models.Model):
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ['chunk_index']
-        unique_together = ('file_metadata', 'chunk_index')
+        ordering = ["chunk_index"]
+        unique_together = ("file_metadata", "chunk_index")
         indexes = [
-            models.Index(fields=['file_metadata', 'chunk_index']),
+            models.Index(fields=["file_metadata", "chunk_index"]),
         ]
 
     def __str__(self):

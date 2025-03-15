@@ -1,29 +1,37 @@
 """Service layer for file operations."""
-from typing import List, Dict, Tuple, Optional
+
+from typing import Dict, List, Optional, Tuple
+
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
 from django.http import HttpResponse
 
-from helpers.minio.storage import minio_upload, minio_download, minio_remove
-from .models import FileMetadata, FileChunk
+from core.minio.storage import minio_download, minio_remove, minio_upload
+
+from .models import FileChunk, FileMetadata
+
 
 class FileService:
     """Service for handling file operations."""
-    
+
     @staticmethod
     def validate_file(file_obj) -> List[str]:
         """Validate file size and name length."""
         MAX_FILE_SIZE = 500 * 1024 * 1024  # 500MB
         MAX_FILENAME_LENGTH = 128
         errors = []
-        
+
         if len(file_obj.name) > MAX_FILENAME_LENGTH:
-            errors.append(f"File name '{file_obj.name}' exceeds {MAX_FILENAME_LENGTH} characters.")
+            errors.append(
+                f"File name '{file_obj.name}' exceeds {MAX_FILENAME_LENGTH} characters."
+            )
 
         if file_obj.size > MAX_FILE_SIZE:
-            errors.append(f"File '{file_obj.name}' exceeds {MAX_FILE_SIZE/(1024*1024)}MB limit.")
+            errors.append(
+                f"File '{file_obj.name}' exceeds {MAX_FILE_SIZE / (1024 * 1024)}MB limit."
+            )
 
         return errors
 
@@ -36,7 +44,9 @@ class FileService:
             raise ValueError(errors[0])
 
         # Upload to MinIO
-        file_name, file_url, etag, chunk_count, chunk_parts, checksum = minio_upload(file_obj)
+        file_name, file_url, etag, chunk_count, chunk_parts, checksum = minio_upload(
+            file_obj
+        )
 
         # Create metadata record
         file_metadata = FileMetadata.objects.create(
@@ -91,12 +101,18 @@ class FileService:
         return file_obj
 
     @staticmethod
-    def list_files(user: User, page: int = 1, per_page: int = 20) -> Tuple[List[FileMetadata], int]:
+    def list_files(
+        user: User, page: int = 1, per_page: int = 20
+    ) -> Tuple[List[FileMetadata], int]:
         """List files with pagination."""
-        uploads_list = (FileMetadata.objects.select_related('uploaded_by').all() 
-                       if user.is_staff 
-                       else FileMetadata.objects.select_related('uploaded_by').filter(uploaded_by=user))
-        
+        uploads_list = (
+            FileMetadata.objects.select_related("uploaded_by").all()
+            if user.is_staff
+            else FileMetadata.objects.select_related("uploaded_by").filter(
+                uploaded_by=user
+            )
+        )
+
         paginator = Paginator(uploads_list, per_page)
         page_obj = paginator.get_page(page)
         total = uploads_list.count()
@@ -110,9 +126,13 @@ class FileService:
         if file_obj.uploaded_by != user and not user.is_staff:
             raise PermissionDenied("Unauthorized access")
 
-        file_data, file_size, content_type = minio_download(file_obj, use_cache=use_cache)
+        file_data, file_size, content_type = minio_download(
+            file_obj, use_cache=use_cache
+        )
 
         response = HttpResponse(file_data, content_type=content_type)
-        response["Content-Disposition"] = f'attachment; filename="{file_obj.get_display_name()}"'
+        response["Content-Disposition"] = (
+            f'attachment; filename="{file_obj.get_display_name()}"'
+        )
         response["Content-Length"] = file_size
         return response
