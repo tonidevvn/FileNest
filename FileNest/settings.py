@@ -25,9 +25,7 @@ MINIO_NODES = [
         "secret_key": "minioadmin",
         "bucket_name": "bucket",
         "secure": False,
-        "latitude": 34.0479,
-        "longitude": 100.6197,
-        "region": "asia",
+        "region": "us-west-1",
         "load": 0,
     },
     {
@@ -36,18 +34,26 @@ MINIO_NODES = [
         "secret_key": "minioadmin",
         "bucket_name": "bucket",
         "secure": False,
-        "latitude": 37.0902,
-        "longitude": -95.7129,
-        "region": "us-east",
+        "region": "us-west-2",
+        "load": 0,
+    },
+    {
+        "endpoint": "localhost:9002",
+        "access_key": "admin",
+        "secret_key": "minioadmin",
+        "bucket_name": "bucket",
+        "secure": False,
+        "region": "eu-west-1",
         "load": 0,
     },
 ]
 
-MINIO_ENDPOINT = "localhost:9000"  # Update if using a remote server
-MINIO_ACCESS_KEY = "admin"  # From Step 1 (MINIO_ROOT_USER)
-MINIO_SECRET_KEY = "minioadmin"  # From Step 1 (MINIO_ROOT_PASSWORD)
-MINIO_BUCKET_NAME = "distributed-files"
-MINIO_SECURE = False  # Use True if enabling HTTPS
+# Default MinIO configuration
+MINIO_ENDPOINT = "localhost:9000"
+MINIO_ACCESS_KEY = "admin"
+MINIO_SECRET_KEY = "minioadmin"
+MINIO_BUCKET_NAME = "bucket"
+MINIO_SECURE = False
 MINIO_ACCESS_URL = f"{MINIO_ENDPOINT}/{MINIO_BUCKET_NAME}"
 
 # Optional: Use MinIO as Django's default file storage

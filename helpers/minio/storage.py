@@ -14,24 +14,48 @@ from .filestat import NodeStatistics
 from .node import node_manager
 from .optimize import cache_file, get_cached_file, get_optimal_node, invalidate_cache
 
-# Initialize MinIO client
-# Get current geographical location
-cur_lat = 37.0902
-cur_lon = -95.7129
-node = node_manager.get_nearest_node(cur_lat, cur_lon)
+# Set up logging
+logger = logging.getLogger(__name__)
+
+# Initialize with default node
+node = node_manager.get_all_nodes()[0]
 bucket_name = node.bucket_name
 secured = node.secure
 access_url = node.access_url
 minio_client = node.client
 
-# Set up logging
-logger = logging.getLogger(__name__)
+
+def set_active_node(latitude=None, longitude=None):
+    """
+    Set the active node based on location or load balancing.
+    Returns the selected node.
+    """
+    global node, bucket_name, secured, access_url, minio_client
+    if latitude and longitude:
+        selected_node = node_manager.get_nearest_node(latitude, longitude)
+    else:
+        selected_node = node_manager.get_least_loaded_node()
+
+    # Fallback to first node if no optimal node found
+    if not selected_node:
+        selected_node = node_manager.get_all_nodes()[0]
+
+    node = selected_node
+    bucket_name = node.bucket_name
+    secured = node.secure
+    access_url = node.access_url
+    minio_client = node.client
+    return node
 
 
-def minio_upload(uploaded_file):
-    # Ensure bucket exists
-    if not minio_client.bucket_exists(bucket_name):
-        minio_client.make_bucket(bucket_name)
+def minio_upload(uploaded_file, user_lat=None, user_lon=None):
+    # Select optimal node for upload
+    active_node = set_active_node(user_lat, user_lon)
+    logger.info(f"Selected node {active_node.endpoint} for upload")
+
+    # Ensure bucket exists on selected node
+    if not active_node.client.bucket_exists(bucket_name):
+        active_node.client.make_bucket(bucket_name)
 
     clean_name = get_valid_filename(uploaded_file.name)  # Sanitize file name
     file_size = uploaded_file.size
