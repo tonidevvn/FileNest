@@ -5,55 +5,50 @@
 {% endblock %}
 
 {% block content %}
-<div class="container">
-    <h1>FileNest Monitoring Dashboard</h1>
-
-    <div class="module">
-        <h2>Node Status</h2>
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Endpoint</th>
-                    <th>Health Status</th>
-                    <th>Load Factor</th>
-                    <th>Region</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for node in nodes %}
-                <tr>
-                    <td>{{ node.endpoint }}</td>
-                    <td>{% if node.is_healthy %}Healthy{% else %}Unhealthy{% endif %}</td>
-                    <td>{{ node.load|floatformat:2 }}</td>
-                    <td>{{ node.region }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+<section class="bg-blue-600 py-8">
+  <div class="container mx-auto px-4">
+    <div class="text-white">
+      <h1 class="text-4xl font-bold mb-2">
+        FileNest Monitoring Dashboard
+      </h1>
+      <h2 class="text-xl font-semibold opacity-90">
+        Admin Dashboard for monitoring node status
+      </h2>
     </div>
+  </div>
+</section>
 
-    <div class="module">
-        <h2>File Distribution</h2>
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>File Name</th>
-                    {% for node in nodes %}
-                    <th>Node {{ forloop.counter }} Status</th>
+<div class="container mx-auto px-4 my-8">
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <h2 class="text-2xl font-bold mb-4">Node Status</h2>
+        <div class="overflow-x-auto">
+            <table class="min-w-full bg-white border border-gray-200 divide-y divide-gray-200">
+                <thead>
+                    <tr class="bg-gray-50">
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">File Name</th>
+                        {% for node in nodes %}
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Node {{ forloop.counter }} Status</th>
+                        {% endfor %}
+                    </tr>
+                    <tr class="bg-gray-50">
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Endpoint</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Health Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Load Factor</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Region</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for file in files %}
+                    <tr {% if forloop.counter|divisibleby:2 %}class="bg-gray-50"{% endif %} hover:bg-gray-100>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ file.file_name }}</td>
+                        {% for node in nodes %}
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ file.node_statuses|get_item:forloop.counter0 }}</td>
+                        {% endfor %}
+                    </tr>
                     {% endfor %}
-                </tr>
-            </thead>
-            <tbody>
-                {% for file in files %}
-                <tr>
-                    <td>{{ file.file_name }}</td>
-                    {% for node in nodes %}
-                    <td>{{ file.node_statuses|get_item:forloop.counter0 }}</td> {# Access status by index #}
-                    {% endfor %}
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 

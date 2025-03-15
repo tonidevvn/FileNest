@@ -3,152 +3,225 @@
 {% block title %}Object Storage{% endblock %}
 
 {% block content %}
-<div class="min-h-115 my-4 md:mt-8 flex items-center justify-center">
-    <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-max">
-        <h1 class="text-3xl font-bold mb-6 text-center">Object Storage</h1>
-        <hr class="mb-4">
+<div class="my-4 md:my-8">
+    <div class="bg-white p-6 rounded-lg shadow-lg">
+        <div class="flex flex-col md:flex-row items-center justify-between mb-6">
+            <h1 class="text-3xl font-bold text-gray-800 mb-4 md:mb-0">
+                <i class="fa fa-database mr-2"></i> Object Storage
+            </h1>
+            <a href="{% url 'web:upload' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition flex items-center">
+                <i class="fa fa-cloud-upload mr-2"></i>
+                Upload New File
+            </a>
+        </div>
+        
+        <hr class="mb-6">
+        
         {% csrf_token %}
         {% if uploads and total %}
-        <h2 class="text-xl font-semibold mt-6">Your Uploaded Files - <span class="text-gray-500">{{ total }} objects</span></h2>
-        <table class="sortable table-auto w-full my-4 border-collapse border border-gray-300">
-            <thead>
-                <tr class="bg-gray-200">
-                    <th class="border border-gray-300 px-4 py-2">No</th>
-                    <th class="border border-gray-300 px-4 py-2">File Name</th>
-                    <th class="border border-gray-300 px-4 py-2">File Size</th>
-                    <th class="no-sort border border-gray-300 px-4 py-2">Server</th>
-                    <th class="border border-gray-300 px-4 py-2">Uploaded At</th>
-                    <th class="no-sort border border-gray-300 px-4 py-2">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for upload in uploads %}
-                <tr class="bg-white">
-                    <td class="border border-gray-300 px-4 py-2">{{ uploads.start_index|add:forloop.counter0 }}</td>
-                    <td class="border border-gray-300 px-4 py-2">
-                            {% if upload.is_image %}
-                                <i class="fa fa-file-image-o" aria-hidden="true"></i>
-                            {% else %}
-                                <i class="fa fa-file" aria-hidden="true"></i>
-                            {% endif %}
-
-                        <a href="{% url 'web:detail' upload.id %}" class="text-blue-500 hover:[text-shadow:_0_2px_4px_rgb(99_102_241_/_0.8)]">
-                            {{ upload.file_name }}
-                        </a>
-                    </td>
-                    <td class="border border-gray-300 px-4 py-2">{{ upload.file_size|filesizeformat }}</td>
-                    <td class="border border-gray-300 px-4 py-2">
-                        <i class="fa fa-hdd-o" aria-hidden="true"></i> <strong>Minio</strong>
-                    </td>
-                    <td class="border border-gray-300 px-4 py-2">{{ upload.uploaded_at }}</td>
-                    <td class="border border-gray-300 px-4 py-2">
-                        <button onclick="downloadFile('{{ upload.id }}', '{{ upload.display_name }}')" class="cursor-pointer w-12 bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">
-                            <i class="fa fa-cloud-download" aria-hidden="true"></i>
-                        </button>
-                        <button onclick="deleteFile('{{ upload.id }}')" class="cursor-pointer w-12 bg-red-500 text-white px-3 py-1 rounded hover:bg-red-700">
-                            <i class="fa fa-trash-o" aria-hidden="true"></i>
-                        </button>
-                        {% if upload.total_chunks > 1 %}
-                            <button onclick="window.location.href='{% url 'web:detail' upload.id %}'"
-                                    class="cursor-pointer w-12 bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600">
-                                <i class="fa fa-th-list" aria-hidden="true"></i>
-                            </button>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="5" class="border border-gray-300 px-4 py-2 text-center">No files available.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-
-        <!-- Pagination Controls -->
-        <div class="flex justify-center mt-4">
-            {% if uploads.has_previous %}
-                <a href="?page=1" class="px-3 py-1 mx-1 bg-gray-200 text-gray-700 rounded">First</a>
-                <a href="?page={{ uploads.previous_page_number }}" class="px-3 py-1 mx-1 bg-gray-200 text-gray-700 rounded">Previous</a>
-            {% endif %}
-
-            <span class="px-3 py-1 mx-1 bg-blue-500 text-white rounded">
-                Page {{ uploads.number }} of {{ uploads.paginator.num_pages }}
-            </span>
-
-            {% if uploads.has_next %}
-                <a href="?page={{ uploads.next_page_number }}" class="px-3 py-1 mx-1 bg-gray-200 text-gray-700 rounded">Next</a>
-                <a href="?page={{ uploads.paginator.num_pages }}" class="px-3 py-1 mx-1 bg-gray-200 text-gray-700 rounded">Last</a>
-            {% endif %}
-        </div>
-
-        <script>
-            function deleteFile(id) {
-                Swal.fire({
-                  title: "Are you sure?",
-                  text: "You won't be able to revert this!",
-                  icon: "warning",
-                  showCancelButton: true,
-                  confirmButtonColor: "#3085d6",
-                  cancelButtonColor: "#d33",
-                  confirmButtonText: "Yes, delete it!"
-                }).then((result) => {
-                  if (result.isConfirmed) {
-                      fetch(`/api/delete/${id}/`, {
-                        method: "DELETE",
-                        headers: {
-                            "X-CSRFToken": "{{ csrf_token }}",
-                        },
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.message) {
-                            Swal.fire({
-                              title: "Deleted!",
-                              text: "Your file has been deleted.",
-                              icon: "success"
-                            });
-
-                            // Wait for 500ms before redirect to the storage page
-                            setTimeout(() => window.location.href = "{% url 'web:storage' %}", 500);
-                        } else {
-                            alert("Error: " + data.error);
-                        }
-                    })
-                    .catch(error => console.error("Error deleting file:", error));
-                  }
-                });
-            }
-
-            function downloadFile(fileId, fileName) {
-                fetch(`/api/download/${fileId}/`)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            const link = document.createElement("a");
-                            link.href = data.data.url;
-                            link.download = fileName;
-                            link.style.display = "none";
-                            document.body.appendChild(link);
-                            link.click();
-                            document.body.removeChild(link);
-                        } else {
-                            throw new Error(data.message || "Failed to get download URL");
-                        }
-                    })
-                    .catch(error => {
-                        console.error("Error downloading file:", error);
-                        Swal.fire({
-                            title: "Error!",
-                            text: "Failed to download file",
-                            icon: "error"
-                        });
-                    });
-            }
-        </script>
+            <div class="bg-blue-50 p-4 rounded-lg mb-6 flex items-center justify-between">
+                <h2 class="text-xl font-semibold text-blue-800">
+                    Your Uploaded Files
+                    <span class="ml-2 text-sm bg-blue-200 text-blue-800 py-1 px-2 rounded-full">{{ total }} objects</span>
+                </h2>
+                <div class="hidden md:flex items-center">
+                    <div class="relative">
+                        <input type="text" id="search-files" placeholder="Search files..." class="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <div class="absolute left-3 top-2.5 text-gray-400">
+                            <i class="fa fa-search"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="overflow-x-auto shadow-md rounded-lg">
+                <table id="files-table" class="sortable min-w-full divide-y divide-gray-200">
+                    <thead>
+                        <tr class="bg-gray-100">
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">No</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">File Name</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">File Size</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Storage</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Uploaded At</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for upload in uploads %}
+                            <tr class="hover:bg-blue-50 transition-colors">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ forloop.counter }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <a href="{% url 'web:detail' upload.id %}" class="text-blue-600 hover:text-blue-900 font-medium flex items-center">
+                                        {% with filename=upload.file_name|lower %}
+                                            {% if ".pdf" in filename %}
+                                                <i class="fa fa-file-pdf-o text-red-500 mr-2"></i>
+                                            {% elif ".doc" in filename or ".docx" in filename %}
+                                                <i class="fa fa-file-word-o text-blue-600 mr-2"></i>
+                                            {% elif ".xls" in filename or ".xlsx" in filename %}
+                                                <i class="fa fa-file-excel-o text-green-600 mr-2"></i>
+                                            {% elif ".jpg" in filename or ".jpeg" in filename or ".png" in filename or ".gif" in filename %}
+                                                <i class="fa fa-file-image-o text-purple-500 mr-2"></i>
+                                            {% elif ".zip" in filename or ".rar" in filename %}
+                                                <i class="fa fa-file-archive-o text-orange-500 mr-2"></i>
+                                            {% else %}
+                                                <i class="fa fa-file-o text-gray-500 mr-2"></i>
+                                            {% endif %}
+                                        {% endwith %}
+                                        {{ upload.get_display_name }}
+                                    </a>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ upload.file_size|filesizeformat }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                        <i class="fa fa-hdd-o mr-1"></i> MinIO
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ upload.uploaded_at }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex space-x-2">
+                                        <button onclick="downloadFile('{{ upload.id }}', '{{ upload.get_display_name }}')" class="bg-green-600 hover:bg-green-700 text-white p-2 rounded transition">
+                                            <i class="fa fa-cloud-download"></i>
+                                        </button>
+                                        <button onclick="deleteFile('{{ upload.id }}')" class="bg-red-500 hover:bg-red-600 text-white p-2 rounded transition">
+                                            <i class="fa fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         {% else %}
-            <p>There is no upload files in this storage.</p>
+            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <i class="fa fa-info-circle text-yellow-400"></i>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm text-yellow-700">
+                            You don't have any files yet. 
+                            <a href="{% url 'web:upload' %}" class="font-medium underline text-yellow-700 hover:text-yellow-600">
+                                Upload your first file
+                            </a>
+                        </p>
+                    </div>
+                </div>
+            </div>
         {% endif %}
-
     </div>
 </div>
+
+<script>
+    function downloadFile(file_id, file_name) {
+        fetch(`/api/files/${file_id}/download/`)
+            .then(response => {
+                if (response.ok) {
+                    return response.blob();
+                }
+                throw new Error('Network response was not ok.');
+            })
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = file_name;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                
+                Toastify({
+                    text: `File ${file_name} downloaded successfully!`,
+                    duration: 3000,
+                    gravity: "top",
+                    position: "right",
+                    style: {
+                        background: "#4CAF50",
+                    }
+                }).showToast();
+            })
+            .catch(error => {
+                console.error('Download failed:', error);
+                Toastify({
+                    text: "Download failed",
+                    duration: 3000,
+                    gravity: "top",
+                    position: "right",
+                    style: {
+                        background: "#F44336",
+                    }
+                }).showToast();
+            });
+    }
+    
+    function deleteFile(file_id) {
+        // Display a confirmation dialog
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to recover this file!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // User confirmed, proceed with deletion
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                
+                fetch(`/api/files/${file_id}/`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                    },
+                })
+                .then(response => {
+                    if (response.ok) {
+                        Swal.fire(
+                            'Deleted!',
+                            'Your file has been deleted.',
+                            'success'
+                        ).then(() => {
+                            // Refresh the page to update the file list
+                            location.reload();
+                        });
+                    } else {
+                        throw new Error('Failed to delete');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire(
+                        'Error!',
+                        'Failed to delete the file.',
+                        'error'
+                    );
+                });
+            }
+        });
+    }
+    
+    // Add search functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('search-files');
+        if (searchInput) {
+            searchInput.addEventListener('keyup', function() {
+                const searchTerm = this.value.toLowerCase();
+                const table = document.getElementById('files-table');
+                const rows = table.getElementsByTagName('tr');
+                
+                // Skip the header row
+                for (let i = 1; i < rows.length; i++) {
+                    const fileName = rows[i].getElementsByTagName('td')[1].textContent.toLowerCase();
+                    if (fileName.includes(searchTerm)) {
+                        rows[i].style.display = '';
+                    } else {
+                        rows[i].style.display = 'none';
+                    }
+                }
+            });
+        }
+    });
+</script>
 {% endblock %}

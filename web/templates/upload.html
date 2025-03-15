@@ -4,101 +4,168 @@
 {% block title %}Upload{% endblock %}
 
 {% block content %}
-<div class="min-h-115 mt-4 md:mt-8 flex items-center justify-center">
-    <div class="bg-white p-8 rounded-lg shadow-lg w-full min-w-2/3 max-w-max">
-        <h2 class="text-3xl font-bold mb-6 text-center">Upload Your File</h2>
+<div class="my-4 md:my-8">
+    <div class="bg-white p-6 md:p-8 rounded-lg shadow-lg max-w-4xl mx-auto">
+        <h2 class="text-3xl font-bold mb-6 text-center text-gray-800">
+            <i class="fa fa-cloud-upload mr-2 text-blue-600"></i>Upload Your Files
+        </h2>
+        
         <!-- Upload Form -->
-        <form id="upload-form" hx-post="{% url 'web:upload' %}" hx-target="#upload-results" enctype="multipart/form-data" class="space-y-4">
+        <form id="upload-form" hx-post="{% url 'web:upload' %}" hx-target="#upload-results" enctype="multipart/form-data" class="space-y-6">
             {% csrf_token %}
 
             <!-- Drag and Drop Zone -->
-            <div id="drop-zone" class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer">
-                <p class="text-gray-600">Drop files here, or click below!</p>
-                <label for="file-upload" class="mt-3 inline-block bg-gray-200 text-gray-700 px-4 py-2 rounded cursor-pointer hover:bg-gray-300">
-                    <i class="fa fa-upload mr-2"></i> Upload
-                </label>
+            <div id="drop-zone" class="border-2 border-dashed border-blue-300 rounded-lg p-8 text-center cursor-pointer bg-blue-50 hover:bg-blue-100 transition">
+                <div class="flex flex-col items-center justify-center space-y-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-12 h-12 text-blue-500">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
+                    </svg>
+                    <p class="text-gray-600 text-lg">Drop files here or click to upload</p>
+                    <p class="text-gray-500 text-sm">You can upload multiple files at once (max 500 MB per file)</p>
+                </div>
+                
                 <input id="file-upload" type="file" name="file-upload" multiple class="hidden">
-                <p class="text-gray-500 text-sm mt-2">You can upload files up to a maximum of 500 MB.</p>
             </div>
 
             <!-- File List -->
-            <div id="file-list" class="mt-4"></div>
+            <div id="file-list" class="mt-4 space-y-2"></div>
 
             <!-- Submission Buttons -->
-            <div class="flex justify-center">
-                <button type="submit" hx-confirm="Some confirm text here" id="upload-button" class="flex justify-center w-32 mx-2 bg-blue-500 text-white py-2 rounded hover:bg-blue-700 cursor-pointer">
-                    Add
-                    <img class="htmx-indicator pl-1 color-white"  src="{% static 'bars.svg' %}" />
-                </button>
-                <button type="button" id="cancel-button" class="w-32 mx-2 bg-gray-400 text-white py-2 rounded hover:bg-gray-500 cursor-pointer">
-                    Cancel
+            <div class="flex justify-center mt-6">
+                <button type="submit" id="upload-button" class="flex justify-center items-center w-40 bg-blue-600 text-white py-3 px-6 rounded-md hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                    <span>Upload Files</span>
+                    <img class="htmx-indicator ml-2 h-5 w-5" src="{% static 'bars.svg' %}" alt="Loading..." />
                 </button>
             </div>
         </form>
-         <!-- Uploaded Files List -->
-        <div id="upload-results"></div>
+        
+        <!-- Upload Results -->
+        <div id="upload-results" class="mt-6"></div>
     </div>
 </div>
 
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const dropZone = document.getElementById("drop-zone");
-            const fileInput = document.getElementById("file-upload");
-            const fileList = document.getElementById("file-list");
-            const cancelButton = document.getElementById("cancel-button");
-
-            // Drag over effect
-            dropZone.addEventListener("dragover", (event) => {
-                event.preventDefault();
-                dropZone.classList.add("bg-gray-100");
-            });
-
-            // Drag leave effect
-            dropZone.addEventListener("dragleave", () => {
-                dropZone.classList.remove("bg-gray-100");
-            });
-
-            // Drop event to upload files
-            dropZone.addEventListener("drop", (event) => {
-                event.preventDefault();
-                dropZone.classList.remove("bg-gray-100");
-                handleFileUpload(event.dataTransfer.files);
-            });
-
-            // File input change event
-            fileInput.addEventListener("change", (event) => {
-                handleFileUpload(event.target.files);
-            });
-
-            function handleFileUpload(files) {
-                const dataTransfer = new DataTransfer(); // Allows modification of FileList
-                fileList.innerHTML = ""; // Clear the previous list
-                for (let file of files) {
-                    dataTransfer.items.add(file); // Add file to DataTransfer
-                    const listItem = document.createElement("div");
-                    listItem.classList.add("flex", "items-center", "mt-2", "bg-gray-200", "p-2", "rounded-lg");
-                    listItem.innerHTML = `
-                        <i class="fa fa-file text-gray-700 mr-2"></i>
-                        <span class="text-blue-500 truncate max-w-xs" title="${file.name}">${file.name}</span>
-                        <span class="ml-2 text-gray-600 text-sm">(${(file.size / 1048576).toFixed(2)} MB)</span>
-                        <button type="button" class="cursor-pointer ml-2 text-red-500 hover:text-red-700 text-sm remove-btn">❌</button>
-                    `;
-                    fileList.appendChild(listItem);
-
-                    // Remove file from list
-                    listItem.querySelector(".remove-btn").addEventListener("click", function () {
-                        listItem.remove();
-                    });
-                }
-                fileInput.files = dataTransfer.files; // Assign modified FileList to input
-            }
-
-            // Cancel Button Clears the File List
-            cancelButton.addEventListener("click", function () {
-                fileList.innerHTML = ""; // Clear the file list
-                fileInput.value = ""; // Reset file input
-            });
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const dropZone = document.getElementById('drop-zone');
+        const fileUpload = document.getElementById('file-upload');
+        const fileList = document.getElementById('file-list');
+        const uploadButton = document.getElementById('upload-button');
+        const form = document.getElementById('upload-form');
+        
+        // Enable upload button only when files are selected
+        uploadButton.disabled = true;
+        
+        // Handle click on drop zone
+        dropZone.addEventListener('click', function() {
+            fileUpload.click();
         });
-
-    </script>
+        
+        // Handle drag and drop
+        dropZone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            dropZone.classList.add('border-blue-500', 'bg-blue-100');
+        });
+        
+        dropZone.addEventListener('dragleave', function() {
+            dropZone.classList.remove('border-blue-500', 'bg-blue-100');
+        });
+        
+        dropZone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            dropZone.classList.remove('border-blue-500', 'bg-blue-100');
+            
+            if (e.dataTransfer.files.length > 0) {
+                fileUpload.files = e.dataTransfer.files;
+                updateFileList(e.dataTransfer.files);
+            }
+        });
+        
+        // Handle file selection
+        fileUpload.addEventListener('change', function() {
+            updateFileList(this.files);
+        });
+        
+        // Update file list display
+        function updateFileList(files) {
+            fileList.innerHTML = '';
+            uploadButton.disabled = files.length === 0;
+            
+            Array.from(files).forEach((file, index) => {
+                const fileSize = formatFileSize(file.size);
+                const fileType = getFileIconClass(file.name);
+                
+                const fileItem = document.createElement('div');
+                fileItem.className = 'flex items-center justify-between bg-gray-50 p-3 rounded-lg';
+                fileItem.innerHTML = `
+                    <div class="flex items-center">
+                        <div class="mr-3">
+                            <i class="${fileType} text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="font-medium text-gray-800">${file.name}</p>
+                            <p class="text-sm text-gray-500">${fileSize}</p>
+                        </div>
+                    </div>
+                    <button type="button" class="remove-file text-red-500 hover:text-red-700" data-index="${index}">
+                        <i class="fa fa-times-circle"></i>
+                    </button>
+                `;
+                
+                fileList.appendChild(fileItem);
+            });
+            
+            // Add remove file functionality
+            document.querySelectorAll('.remove-file').forEach(button => {
+                button.addEventListener('click', function() {
+                    const index = parseInt(this.dataset.index);
+                    const newFileList = new DataTransfer();
+                    
+                    Array.from(fileUpload.files).forEach((file, i) => {
+                        if (i !== index) {
+                            newFileList.items.add(file);
+                        }
+                    });
+                    
+                    fileUpload.files = newFileList.files;
+                    updateFileList(fileUpload.files);
+                });
+            });
+        }
+        
+        // Format file size
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(1024));
+            
+            return parseFloat((bytes / Math.pow(1024, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+        
+        // Get file icon class based on file extension
+        function getFileIconClass(filename) {
+            const extension = filename.split('.').pop().toLowerCase();
+            
+            if (['pdf'].includes(extension)) {
+                return 'fa fa-file-pdf-o text-red-500';
+            } else if (['doc', 'docx'].includes(extension)) {
+                return 'fa fa-file-word-o text-blue-600';
+            } else if (['xls', 'xlsx', 'csv'].includes(extension)) {
+                return 'fa fa-file-excel-o text-green-600';
+            } else if (['ppt', 'pptx'].includes(extension)) {
+                return 'fa fa-file-powerpoint-o text-orange-500';
+            } else if (['zip', 'rar', '7z', 'tar', 'gz'].includes(extension)) {
+                return 'fa fa-file-archive-o text-yellow-600';
+            } else if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg'].includes(extension)) {
+                return 'fa fa-file-image-o text-purple-500';
+            } else if (['mp3', 'wav', 'ogg', 'flac'].includes(extension)) {
+                return 'fa fa-file-audio-o text-pink-500';
+            } else if (['mp4', 'avi', 'mov', 'wmv', 'mkv'].includes(extension)) {
+                return 'fa fa-file-video-o text-indigo-500';
+            } else {
+                return 'fa fa-file-o text-gray-500';
+            }
+        }
+    });
+</script>
 {% endblock %}
