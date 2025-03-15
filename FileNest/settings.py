@@ -103,9 +103,9 @@ INSTALLED_APPS = [
     "rest_framework.authtoken",
     "corsheaders",
     "storages",
-    "api",
-    "upload",
+    "web",
     "monitoring",
+    "core",
 ]
 
 MIDDLEWARE = [

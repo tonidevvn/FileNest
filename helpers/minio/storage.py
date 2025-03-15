@@ -8,7 +8,7 @@ from django.shortcuts import get_list_or_404
 from django.utils.text import get_valid_filename
 from minio.commonconfig import ComposeSource
 
-from upload.models import FileChunk
+from web.models import FileChunk
 
 from .filestat import NodeStatistics
 from .node import node_manager

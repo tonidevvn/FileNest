@@ -1,0 +1,27 @@
+
+{% if errors %}
+<script>
+  Swal.fire({
+      icon: "error",
+      title: "Oops...",
+      text: "{{ errors.0 }}",
+      timer: 2000
+    });
+</script>
+{% endif %}
+
+{% if uploaded_files %} <div class="mt-6">
+  <h3 class="text-lg font-bold">Uploaded Files</h3>
+  <ul class="mt-2"> {% for file in uploaded_files %} <li class="flex items-center mt-2 bg-gray-200 p-2 rounded-lg"> 📄 <a href="{{ file.file_url }}" class="text-blue-500 ml-2 truncate">{{ file.file_name }}</a>
+    </li> {% endfor %} </ul>
+</div>
+<script>
+  Swal.fire({
+      icon: "success",
+      title: "Your file(s) has been saved",
+      showConfirmButton: false,
+      timer: 1500
+    });
+</script>
+{% endif %}
+
