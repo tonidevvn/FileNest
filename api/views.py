@@ -1,19 +1,29 @@
 """API Views for FileNest."""
+
 from rest_framework import status
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.decorators import (
+    api_view,
+    authentication_classes,
+    permission_classes,
+)
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.authentication import SessionAuthentication
 
-from core.services import FileService
 from core.auth import AuthService
-from .serializers import FileMetadataSerializer, UserSerializer
+from core.services import FileService
+
 from .auth import CustomTokenAuthentication  # Import custom token auth
+from .serializers import FileMetadataSerializer, UserSerializer
 
 # Common authentication and permission classes
-AUTH_CLASSES = [CustomTokenAuthentication]
+AUTH_CLASSES = [CustomTokenAuthentication, SessionAuthentication]
 PERM_CLASSES = [IsAuthenticated]
 
-def create_response(success=True, message="", data=None, status_code=status.HTTP_200_OK):
+
+def create_response(
+    success=True, message="", data=None, status_code=status.HTTP_200_OK
+):
     """Create a standardized response format."""
     return Response(
         {
@@ -24,6 +34,7 @@ def create_response(success=True, message="", data=None, status_code=status.HTTP
         status=status_code,
     )
 
+
 @api_view(["POST"])
 def signup(request):
     """Register a new user and return their token."""
@@ -33,7 +44,7 @@ def signup(request):
             user, token = AuthService.create_user(
                 username=request.data["username"],
                 email=request.data["email"],
-                password=request.data["password"]
+                password=request.data["password"],
             )
             return create_response(
                 message="User registered successfully",
@@ -53,13 +64,13 @@ def signup(request):
             status_code=status.HTTP_400_BAD_REQUEST,
         )
 
+
 @api_view(["POST"])
 def login(request):
     """Log in a user and return their token."""
     try:
         user = AuthService.validate_login(
-            username=request.data["username"],
-            password=request.data["password"]
+            username=request.data["username"], password=request.data["password"]
         )
         token = AuthService.get_or_create_token(user)
         serializer = UserSerializer(user)
@@ -74,6 +85,7 @@ def login(request):
             status_code=status.HTTP_401_UNAUTHORIZED,
         )
 
+
 @api_view(["POST"])
 @authentication_classes(AUTH_CLASSES)
 @permission_classes(PERM_CLASSES)
@@ -87,7 +99,9 @@ def upload_file(request):
                 status_code=status.HTTP_400_BAD_REQUEST,
             )
 
-        file_metadata, _ = FileService.upload_file(request.FILES["file-upload"], request.user)
+        file_metadata, _ = FileService.upload_file(
+            request.FILES["file-upload"], request.user
+        )
         return create_response(
             message="File uploaded successfully",
             data=FileMetadataSerializer(file_metadata).data,
@@ -99,6 +113,7 @@ def upload_file(request):
             message=str(e),
             status_code=status.HTTP_400_BAD_REQUEST,
         )
+
 
 @api_view(["GET"])
 @authentication_classes(AUTH_CLASSES)
@@ -119,6 +134,7 @@ def detail_file(request, file_id):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
+
 @api_view(["DELETE"])
 @authentication_classes(AUTH_CLASSES)
 @permission_classes(PERM_CLASSES)
@@ -134,13 +150,14 @@ def delete_file(request, file_id):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
+
 @api_view(["GET"])
 @authentication_classes(AUTH_CLASSES)
 @permission_classes(PERM_CLASSES)
 def list_files(request):
     """List all uploaded files for the authenticated user."""
     try:
-        page = int(request.GET.get('page', 1))
+        page = int(request.GET.get("page", 1))
         files, total = FileService.list_files(request.user, page)
         serializer = FileMetadataSerializer(files, many=True)
         return create_response(
@@ -154,13 +171,17 @@ def list_files(request):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
+
 @api_view(["GET"])
 @authentication_classes(AUTH_CLASSES)
 @permission_classes(PERM_CLASSES)
 def download_file(request, file_id):
     """Download a file for authenticated users."""
     try:
-        return FileService.download_file(file_id, request.user)
+        presigned_url = FileService.download_file(file_id, request.user)
+        return create_response(
+            message="Presigned URL generated", data={"url": presigned_url}
+        )
     except Exception as e:
         return create_response(
             success=False,

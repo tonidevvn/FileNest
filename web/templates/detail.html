@@ -3,6 +3,7 @@
 {% block title %}Object Info{% endblock %}
 
 {% block content %}
+{% csrf_token %}
 <div class="mt-4 md:mt-8 flex items-center justify-center">
     <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-max min-w-3/4 min-h-115">
         <h1 class="text-3xl font-bold mb-6 text-center">📎 Object Info</h1>
@@ -98,7 +99,7 @@
         {% endif %}
 
         <div class="flex gap-4 mt-4">
-            <button onclick="downloadFile('{{ file_metadata.file_url }}', '{{ file_metadata.file_name }}')" class="cursor-pointer bg-green-500 text-white px-4 py-2 rounded hover:bg-green-700">Download</button>
+            <button onclick="downloadFile('{{ file_metadata.id }}', '{{ file_metadata.display_name }}')" class="cursor-pointer bg-green-500 text-white px-4 py-2 rounded hover:bg-green-700">Download</button>
             <button onclick="deleteFile('{{ file_metadata.id }}')" class="cursor-pointer bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700">Delete</button>
         </div>
 
@@ -145,27 +146,35 @@
                 });
             }
 
-            function downloadFile(fileUrl, fileName) {
-                fetch(fileUrl,
-                    {
-                        headers: new Headers(
-                            {
-                            Origin: location.origin,
-                            }),
-                        mode: "cors",
-                    })
-                    .then(response => response.blob())
-                    .then(blob => {
-
-                    const blobUrl  = URL.createObjectURL(blob);
-                    const link = document.createElement("a");
-                    link.href = blobUrl ;
-                    link.download = fileName;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
+            function downloadFile(fileId, fileName) {
+                fetch(`/api/download/${fileId}/`, {
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    },
+                    credentials: 'include'  // Important: Include cookies in the request
                 })
-                .catch((e) => console.error(e));
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const link = document.createElement("a");
+                        link.href = data.data.url;
+                        link.download = fileName;
+                        link.style.display = "none";
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    } else {
+                        throw new Error(data.message || "Failed to get download URL");
+                    }
+                })
+                .catch(error => {
+                    console.error("Error downloading file:", error);
+                    Swal.fire({
+                        title: "Error!",
+                        text: "Failed to download file",
+                        icon: "error"
+                    });
+                });
             }
 
             document.addEventListener("DOMContentLoaded", function(event) {

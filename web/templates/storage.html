@@ -42,7 +42,7 @@
                     </td>
                     <td class="border border-gray-300 px-4 py-2">{{ upload.uploaded_at }}</td>
                     <td class="border border-gray-300 px-4 py-2">
-                        <button onclick="downloadFile('{{ upload.file_url }}', '{{ upload.file_name }}')" class="cursor-pointer w-12 bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">
+                        <button onclick="downloadFile('{{ upload.id }}', '{{ upload.display_name }}')" class="cursor-pointer w-12 bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">
                             <i class="fa fa-cloud-download" aria-hidden="true"></i>
                         </button>
                         <button onclick="deleteFile('{{ upload.id }}')" class="cursor-pointer w-12 bg-red-500 text-white px-3 py-1 rounded hover:bg-red-700">
@@ -119,27 +119,30 @@
                 });
             }
 
-            function downloadFile(fileUrl, fileName) {
-                fetch(fileUrl,
-                    {
-                        headers: new Headers(
-                            {
-                            Origin: location.origin,
-                            }),
-                        mode: "cors",
+            function downloadFile(fileId, fileName) {
+                fetch(`/api/download/${fileId}/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            const link = document.createElement("a");
+                            link.href = data.data.url;
+                            link.download = fileName;
+                            link.style.display = "none";
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                        } else {
+                            throw new Error(data.message || "Failed to get download URL");
+                        }
                     })
-                    .then(response => response.blob())
-                    .then(blob => {
-
-                    const blobUrl  = URL.createObjectURL(blob);
-                    const link = document.createElement("a");
-                    link.href = blobUrl ;
-                    link.download = fileName;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                })
-                .catch((e) => console.error(e));
+                    .catch(error => {
+                        console.error("Error downloading file:", error);
+                        Swal.fire({
+                            title: "Error!",
+                            text: "Failed to download file",
+                            icon: "error"
+                        });
+                    });
             }
         </script>
         {% else %}

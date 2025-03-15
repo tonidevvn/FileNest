@@ -1,6 +1,6 @@
 """Service layer for file operations."""
 
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Union
 
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -8,7 +8,12 @@ from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
 from django.http import HttpResponse
 
-from core.minio.storage import minio_download, minio_remove, minio_upload
+from core.minio.storage import (
+    get_presigned_url,
+    minio_download,
+    minio_remove,
+    minio_upload,
+)
 
 from .models import FileChunk, FileMetadata
 
@@ -120,17 +125,17 @@ class FileService:
         return page_obj, total
 
     @staticmethod
-    def download_file(file_id: str, user: User) -> HttpResponse:
-        """Download file with permission check."""
+    def download_file(file_id: str, user: User) -> Union[HttpResponse, str]:
+        """Download file with permission check, returning a presigned URL."""
         file_obj = FileMetadata.objects.get(id=file_id)
         if file_obj.uploaded_by != user and not user.is_staff:
             raise PermissionDenied("Unauthorized access")
 
-        file_data, file_size, content_type = minio_download(file_obj)
+        # Generate presigned URL
+        presigned_url = get_presigned_url(file_obj.file_name)
 
-        response = HttpResponse(file_data, content_type=content_type)
-        response["Content-Disposition"] = (
-            f'attachment; filename="{file_obj.get_display_name()}"'
-        )
-        response["Content-Length"] = file_size
-        return response
+        if presigned_url:
+            return presigned_url
+        else:
+            # Handle error (e.g., MinIO not reachable)
+            raise Exception("Could not generate presigned URL")
