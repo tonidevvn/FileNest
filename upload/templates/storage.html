@@ -32,7 +32,7 @@
                                 <i class="fa fa-file" aria-hidden="true"></i>
                             {% endif %}
 
-                        <a href="{% url 'detail' upload.id %}" class="text-blue-500 hover:[text-shadow:_0_2px_4px_rgb(99_102_241_/_0.8)]">
+                        <a href="{% url 'upload:detail' upload.id %}" class="text-blue-500 hover:[text-shadow:_0_2px_4px_rgb(99_102_241_/_0.8)]">
                             {{ upload.file_name }}
                         </a>
                     </td>
@@ -49,7 +49,7 @@
                             <i class="fa fa-trash-o" aria-hidden="true"></i>
                         </button>
                         {% if upload.total_chunks > 1 %}
-                            <button onclick="window.location.href='{% url 'detail' upload.id %}'"
+                            <button onclick="window.location.href='{% url 'upload:detail' upload.id %}'"
                                     class="cursor-pointer w-12 bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600">
                                 <i class="fa fa-th-list" aria-hidden="true"></i>
                             </button>
@@ -109,7 +109,7 @@
                             });
 
                             // Wait for 500ms before redirect to the storage page
-                            setTimeout(() => window.location.href = "{% url 'storage' %}", 500);
+                            setTimeout(() => window.location.href = "{% url 'upload:storage' %}", 500);
                         } else {
                             alert("Error: " + data.error);
                         }

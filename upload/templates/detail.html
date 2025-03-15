@@ -103,7 +103,7 @@
         </div>
 
         <div class="text-center mt-6">
-            <a href="{% url 'storage' %}" class="text-blue-500 underline">Back to Storage</a>
+            <a href="{% url 'upload:storage' %}" class="text-blue-500 underline">Back to Storage</a>
         </div>
     </div>
 </div>
@@ -135,7 +135,7 @@
                             });
 
                             // Wait for 500ms before redirect to the storage page
-                            setTimeout(() => window.location.href = "{% url 'storage' %}", 500);
+                            setTimeout(() => window.location.href = "{% url 'upload:storage' %}", 500);
                         } else {
                             alert("Error: " + data.error);
                         }

@@ -105,6 +105,7 @@ INSTALLED_APPS = [
     "storages",
     "api",
     "upload",
+    "monitoring",
 ]
 
 MIDDLEWARE = [

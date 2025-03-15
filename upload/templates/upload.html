@@ -8,7 +8,7 @@
     <div class="bg-white p-8 rounded-lg shadow-lg w-full min-w-2/3 max-w-max">
         <h2 class="text-3xl font-bold mb-6 text-center">Upload Your File</h2>
         <!-- Upload Form -->
-        <form id="upload-form" hx-post="{% url 'upload' %}" hx-target="#upload-results" enctype="multipart/form-data" class="space-y-4">
+        <form id="upload-form" hx-post="{% url 'upload:upload' %}" hx-target="#upload-results" enctype="multipart/form-data" class="space-y-4">
             {% csrf_token %}
 
             <!-- Drag and Drop Zone -->
