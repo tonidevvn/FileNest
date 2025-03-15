@@ -4,10 +4,12 @@ from typing import Dict, List, Optional, Tuple, Union
 
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
 from django.http import HttpResponse
 
+from core.minio.node import node_manager
 from core.minio.storage import (
     get_presigned_url,
     minio_download,
@@ -126,16 +128,29 @@ class FileService:
 
     @staticmethod
     def download_file(file_id: str, user: User) -> Union[HttpResponse, str]:
-        """Download file with permission check, returning a presigned URL."""
+        """Download file from the least loaded node, returning a presigned URL."""
+        file_obj = FileMetadata.objects.get(id=file_id)
         file_obj = FileMetadata.objects.get(id=file_id)
         if file_obj.uploaded_by != user and not user.is_staff:
             raise PermissionDenied("Unauthorized access")
 
-        # Generate presigned URL
-        presigned_url = get_presigned_url(file_obj.file_name)
+        cache_key = f"presigned_url_{file_id}"
+        presigned_url = cache.get(cache_key)
+
+        if not presigned_url:
+            # Get the least loaded node
+            node = node_manager.get_least_loaded_node()
+            if not node:
+                raise Exception("No active MinIO nodes available.")
+
+            # Generate presigned URL from the least loaded node's client
+            presigned_url = node.client.presigned_get_object(
+                node.bucket_name, file_obj.file_name
+            )
+            cache.set(cache_key, presigned_url, 3600)  # Cache for 1 hour
 
         if presigned_url:
             return presigned_url
         else:
             # Handle error (e.g., MinIO not reachable)
-            raise Exception("Could not generate presigned URL")
+            raise Exception("Could not generate presigned URL from least loaded node")

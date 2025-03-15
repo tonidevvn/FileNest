@@ -17,17 +17,6 @@
         </p>
 
         {% if request.user.is_staff %}
-            {% for file in distributed_files %}
-                <div class="my-2 w-fit px-5 bg-gray-400 text-white text-sm font-mono p-1 rounded-lg overflow-x-auto">
-                        {% if file.status == "Available" %}
-                           <span class="text-red-400 bg-black mr-2 rounded-sm"> ✅ {{ file.region }} </span>
-                        {% else %}
-                           <span class="text-red-400 bg-black mr-2 rounded-sm"> ❌ {{ file.region }} </span>
-                        {% endif %}
-
-                    <code class="select-all"> {{ file.file_url }}</code>
-                </div>
-            {% endfor %}
         {% endif %}
 
         <p class="font-semibold my-2">Size:
@@ -99,7 +88,7 @@
         {% endif %}
 
         <div class="flex gap-4 mt-4">
-            <button onclick="downloadFile('{{ file_metadata.id }}', '{{ file_metadata.display_name }}')" class="cursor-pointer bg-green-500 text-white px-4 py-2 rounded hover:bg-green-700">Download</button>
+            <a href="{{ download_url }}" class="cursor-pointer bg-green-500 text-white px-4 py-2 rounded hover:bg-green-700" download="{{ file_metadata.file_name }}">Download</a>
             <button onclick="deleteFile('{{ file_metadata.id }}')" class="cursor-pointer bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700">Delete</button>
         </div>
 

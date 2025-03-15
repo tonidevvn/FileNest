@@ -1,0 +1,60 @@
+{% extends "admin/base_site.html" %}
+
+{% block title %}
+    {{ block.super }} | Monitoring Dashboard
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>FileNest Monitoring Dashboard</h1>
+
+    <div class="module">
+        <h2>Node Status</h2>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Endpoint</th>
+                    <th>Health Status</th>
+                    <th>Load Factor</th>
+                    <th>Region</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for node in nodes %}
+                <tr>
+                    <td>{{ node.endpoint }}</td>
+                    <td>{% if node.is_healthy %}Healthy{% else %}Unhealthy{% endif %}</td>
+                    <td>{{ node.load|floatformat:2 }}</td>
+                    <td>{{ node.region }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="module">
+        <h2>File Distribution</h2>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>File Name</th>
+                    {% for node in nodes %}
+                    <th>Node {{ forloop.counter }} Status</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for file in files %}
+                <tr>
+                    <td>{{ file.file_name }}</td>
+                    {% for node in nodes %}
+                    <td>{{ file.node_statuses|get_item:forloop.counter0 }}</td> {# Access status by index #}
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

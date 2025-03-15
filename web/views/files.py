@@ -50,12 +50,15 @@ def file_upload(request):
 
 @login_required(login_url='/login/')
 def file_detail(request, file_id):
-    """Display file details and chunk information."""
+    """Display file details and chunk information, downloading from least loaded node."""
     try:
         file_metadata = FileService.get_file_details(file_id, request.user)
         log_file_action(request.user, file_metadata.file_name, 'VIEW', request)
 
-        # Get node status for admin users
+        # Get download URL from the least loaded node
+        download_url = FileService.download_file(file_id, request.user)
+
+        # For admin users, show distributed file status
         nodes = node_manager.get_all_nodes()
         distributed_files = [
             {
@@ -70,7 +73,8 @@ def file_detail(request, file_id):
         return render(request, 'detail.html', {
             'file_metadata': file_metadata,
             'chunks': chunks,
-            "distributed_files": distributed_files
+            "distributed_files": distributed_files,
+            'download_url': download_url,  # Pass the download URL to the template
         })
     except Exception as e:
         return render(request, 'detail.html', {'error': str(e)})

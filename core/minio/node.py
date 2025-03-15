@@ -23,6 +23,7 @@ class Node:
         self.bucket_name = bucket_name
         self.load = load
         self.region = region
+        self.endpoint = endpoint
         self.access_url = f"{endpoint}/{bucket_name}"
 
         # Initialize MinIO client with retry and proper pool_size
@@ -33,6 +34,7 @@ class Node:
             secure=secure,
             http_client=None,  # Use default client with automatic retries
         )
+        print(f"Minio endpoint for client: {endpoint}")
 
     def check_health(self):
         try:
@@ -69,6 +71,10 @@ class NodeManager:
         return [node for node in self.nodes if node.check_health()]
 
     def get_least_loaded_node(self) -> Node:
+        from core.minio.filestat import monitor_nodes_health  # Import here to avoid circular import
+
+        monitor_nodes_health()  # Update node loads before selecting
+
         active_nodes = self.get_active_nodes()
         if not active_nodes:
             return None

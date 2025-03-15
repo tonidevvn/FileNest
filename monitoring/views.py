@@ -2,6 +2,9 @@
 from django.contrib.admin.views.decorators import staff_member_required
 from django.core.paginator import Paginator
 from django.shortcuts import render
+
+from core.minio.node import node_manager
+from core.models import FileMetadata
 from .models import FileAccessLog
 
 def log_file_action(user, file_name, action, request):
@@ -40,3 +43,25 @@ def log_monitoring(request):
     }
     
     return render(request, 'monitoring/logs.html', context)
+
+
+@staff_member_required
+def admin_dashboard(request):
+    """Admin dashboard to monitor node status and file distribution."""
+    nodes = node_manager.get_all_nodes()
+    file_list = FileMetadata.objects.all()  # Fetch all files for distribution table - might need pagination later
+
+    files_data = []
+    for file_metadata in file_list:
+        node_statuses = [node.check_file_status(file_metadata.file_name) for node in nodes]
+        files_data.append({
+            'file_name': file_metadata.file_name,
+            'node_statuses': node_statuses,
+        })
+
+
+    context = {
+        'nodes': nodes,
+        'files': files_data,
+    }
+    return render(request, 'monitoring/admin_dashboard.html', context)

@@ -197,17 +197,13 @@ USE_TZ = True
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# Cache configuration - REMOVED
-# CACHES = {
-#     "default": {
-#         "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-#         "LOCATION": "filenest-cache",
-#         "TIMEOUT": 3600,  # 1 hour default timeout
-#         "OPTIONS": {
-#             "MAX_ENTRIES": 1000,  # Maximum number of entries in the cache
-#         },
-#     }
-# }
+# Cache configuration
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "filenest-cache",
+    }
+}
 
 # For production environments, consider using Redis or Memcached:
 # CACHES = {
