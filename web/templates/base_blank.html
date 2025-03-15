@@ -1,31 +1,27 @@
 {% load static %}
 
 <!DOCTYPE html>
-<html lang="en" class="h-full">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-    <title>FileNest - {% block title %}{% endblock %}</title>
-    <link rel="icon" type="image/png" sizes="96x96" href={% static 'favicon.png' %}>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..800&family=Montserrat:wght@400..800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" type="text/css" href={% static 'style.css' %}>
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+       <title>FileNest - {% block title %}{% endblock %}</title>
     <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="icon" type="image/png" sizes="96x96" href={% static 'favicon.png' %}>
+    <link href="https://fonts.googleapis.com/css2?family=Bubblegum+Sans&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href={% static 'style.css' %}>
+
 </head>
-<body class="bg-gradient-to-b from-gray-50 to-blue-50 flex flex-col min-h-screen">
-    <div class="flex-grow flex items-center justify-center py-12">
-        <div class="w-full max-w-md">
+<body>
+    <section class="section">
+        <div class="container mx-auto">
             {% block content %}{% endblock %}
         </div>
-    </div>
-   
-    <footer class="bg-[#1e3a8a] text-white text-center py-4">
-        <div class="container mx-auto px-4">
-            <p>&copy; 2025 FileNest. All rights reserved.</p>
-            <p class="text-xs text-gray-400 mt-1">Secure file storage and sharing</p>
-        </div>
+    </section>
+
+   <footer class="text-gray-500 text-center py-4 mt-8 absolute bottom-0 left-0 right-0">
+        <p>&copy; 2025 FileNest. All rights reserved.</p>
     </footer>
 </body>
 </html>
