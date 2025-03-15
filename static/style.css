@@ -1,21 +1,23 @@
 /* 1. Use a more-intuitive box-sizing model */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
 :root {
   /* New theme colors */
-  --primary-color: #1e40af;     /* Dark blue */
-  --primary-light: #3b82f6;     /* Medium blue */
-  --primary-dark: #1e3a8a;      /* Deeper blue */
-  --secondary-color: #10b981;   /* Emerald */
-  --accent-color: #8b5cf6;      /* Purple */
-  --warning-color: #f59e0b;     /* Amber */
-  --danger-color: #ef4444;      /* Red */
-  --text-primary: #111827;      /* Dark gray for main text */
-  --text-secondary: #4b5563;    /* Medium gray for secondary text */
-  --bg-light: #f9fafb;          /* Very light gray background */
-  --bg-card: #ffffff;           /* White for cards */
+  --primary-color: #1e40af; /* Dark blue */
+  --primary-light: #3b82f6; /* Medium blue */
+  --primary-dark: #1e3a8a; /* Deeper blue */
+  --secondary-color: #10b981; /* Emerald */
+  --accent-color: #8b5cf6; /* Purple */
+  --warning-color: #f59e0b; /* Amber */
+  --danger-color: #ef4444; /* Red */
+  --text-primary: #111827; /* Dark gray for main text */
+  --text-secondary: #4b5563; /* Medium gray for secondary text */
+  --bg-light: #f9fafb; /* Very light gray background */
+  --bg-card: #ffffff; /* White for cards */
 }
 
 body {
@@ -26,12 +28,19 @@ body {
   color: var(--text-primary);
 }
 
-label, input, button, textarea, select, p, a {
+label,
+input,
+button,
+textarea,
+select,
+p,
+a {
   font-family: "Inter", "Segoe UI", system-ui, sans-serif;
   font-optical-sizing: auto;
 }
 
-nav a, nav button {
+nav a,
+nav button {
   font-family: "Montserrat", "Inter", sans-serif;
   font-weight: 600;
 }
@@ -55,7 +64,12 @@ a:hover {
   color: var(--primary-dark);
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: "Montserrat", "Inter", sans-serif;
   text-wrap: balance;
   font-weight: 700;
@@ -104,16 +118,18 @@ h1, h2, h3, h4, h5, h6 {
   cursor: pointer;
   border-radius: 0.5rem;
   overflow: hidden;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .container__img-holder:hover {
   transform: translateY(-4px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
-.container .container__img-holder:nth-child(3n+1) {
+.container .container__img-holder:nth-child(3n + 1) {
   margin-left: 0;
 }
 
@@ -154,7 +170,8 @@ h1, h2, h3, h4, h5, h6 {
   -ms-transform: translateY(-100px);
   -o-transform: translateY(-100px);
   border-radius: 0.5rem;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2),
+    0 10px 10px -5px rgba(0, 0, 0, 0.1);
 }
 
 .close-btn {
@@ -188,8 +205,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .opened img {
-  animation: animatepopup 1s ease-in-out .8s;
-  -webkit-animation: animatepopup .3s ease-in-out forwards;
+  animation: animatepopup 1s ease-in-out 0.8s;
+  -webkit-animation: animatepopup 0.3s ease-in-out forwards;
 }
 
 @keyframes animatepopup {
@@ -207,30 +224,36 @@ h1, h2, h3, h4, h5, h6 {
 .card {
   background-color: var(--bg-card);
   border-radius: 0.5rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
   transition: box-shadow 0.3s ease;
 }
 
 .card:hover {
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
 /* Form styling */
-input, textarea, select {
+input,
+textarea,
+select {
   border-radius: 0.375rem;
   border: 1px solid #d1d5db;
   padding: 0.5rem 0.75rem;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-input:focus, textarea:focus, select:focus {
+input:focus,
+textarea:focus,
+select:focus {
   outline: none;
   border-color: var(--primary-light);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
 }
 
 @media screen and (max-width: 880px) {
-  .container .container__img-holder:nth-child(3n+1) {
+  .container .container__img-holder:nth-child(3n + 1) {
     margin-left: 16px;
   }
 }
