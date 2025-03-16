@@ -2,6 +2,7 @@
 
 from typing import Dict, List, Optional, Tuple, Union
 
+import requests
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.cache import cache
@@ -136,24 +137,26 @@ class FileService:
         cache_key = f"presigned_url_{file_id}"
         presigned_url = cache.get(cache_key)
 
-        if not presigned_url:
-            # Get the least loaded node
-            node = node_manager.get_least_loaded_node()
-            if not node:
-                raise Exception("No active MinIO nodes available.")
-
-            # Generate presigned URL from the least loaded node's client
-            presigned_url = node.client.presigned_get_object(
-                node.bucket_name, file_obj.file_name
-            )
-            cache.set(cache_key, presigned_url, 3600)  # Cache for 1 hour
-
         if presigned_url:
-            return presigned_url
-        else:
-            # Handle error (e.g., MinIO not reachable)
-            raise Exception("Could not generate presigned URL from least loaded node")
+            try:
+                response = requests.head(presigned_url)
+                if response.status_code == 200:
+                    return presigned_url
+            except requests.exceptions.RequestException:
+                pass
 
+        # Get the least loaded node
+        node = node_manager.get_least_loaded_node()
+        if not node:
+            raise Exception("No active MinIO nodes available.")
+
+        # Generate presigned URL from the least loaded node's client
+        presigned_url = node.client.presigned_get_object(
+            node.bucket_name, file_obj.file_name
+        )
+        cache.set(cache_key, presigned_url, 3600)  # Cache for 1 hour
+
+        return presigned_url
 
     @staticmethod
     def preview_urls(file_id: str, user: User) -> Union[HttpResponse, Dict]:
@@ -172,4 +175,3 @@ class FileService:
             presigned_urls[node] = presigned_url
 
         return presigned_urls
-
