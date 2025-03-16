@@ -9,6 +9,7 @@ body {
   font-family: "Open Sans", sans-serif;
   font-optical-sizing: auto;
   -webkit-font-smoothing: antialiased;
+  overflow:auto;
 }
 
 label,
@@ -87,6 +88,23 @@ h6 {
 }
 .htmx-request.htmx-indicator {
   display: inline;
+}
+
+/* Ensure the mobile menu appears as an absolute dropdown */
+.navbar-menu {
+    position: absolute;
+    top: 100%; /* Position below the navbar */
+    left: 0;
+    width: 100%;
+    background-color: white; /* Ensure the dropdown is visible */
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    display: none; /* Hide by default */
+    z-index: 1000; /* Ensure it appears above other elements */
+}
+
+/* Show menu when active */
+.navbar-menu.is-active {
+    display: block;
 }
 
 /* Popup Styling */
