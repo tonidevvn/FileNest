@@ -6,6 +6,9 @@ x-minio-common: &minio-common
     MINIO_ROOT_USER: admin
     MINIO_ROOT_PASSWORD: minioadmin
     MINIO_BROWSER_REDIRECT_URL: http://localhost:9090
+    MINIO_LOGGER_WEBHOOK_ENABLE: on
+    MINIO_LOGGER_WEBHOOK_ENDPOINT: http://fluent-bit:24224
+
   healthcheck:
     test: ["CMD", "mc", "ready", "local"]
     interval: 30s
@@ -130,9 +133,57 @@ services:
     networks:
       - minio-network
 
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.3
+    container_name: elasticsearch
+    ports:
+      - "9200:9200"
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    volumes:
+      - esdata1:/usr/share/elasticsearch/data
+    healthcheck:
+      test: curl -s http://localhost:9200 >/dev/null; if [[ $$? == 52 ]]; then echo healthy; else echo unhealthy; exit 1; fi
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - minio-network
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.11.3
+    container_name: kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
+    networks:
+      - minio-network
+
+  fluent-bit:
+    image: fluent/fluent-bit:latest
+    container_name: fluent-bit
+    volumes:
+      - ./fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf
+    ports:
+      - "24224:24224"
+    depends_on:
+      - elasticsearch
+    healthcheck:
+      test: [ "CMD", "fluent-bit", "-t" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - minio-network
+
 networks:
   minio-network:
-    driver: bridge
+#    driver: bridge
 
 volumes:
   minio1-data-1:
@@ -147,3 +198,4 @@ volumes:
   minio3-data-2:
   minio3-data-3:
   minio3-data-4:
+  esdata1:
