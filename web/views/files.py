@@ -52,18 +52,20 @@ def file_upload(request):
 def file_detail(request, file_id):
     """Display file details and chunk information, downloading from least loaded node."""
     try:
-        file_metadata = FileService.get_file_details(file_id, request.user)
+        request_user = request.user
+        file_metadata = FileService.get_file_details(file_id, request_user)
         log_file_action(request.user, file_metadata.file_name, 'VIEW', request)
 
         # Get download URL from the least loaded node
-        download_url = FileService.download_file(file_id, request.user)
+        download_url = FileService.download_file(file_id, request_user)
 
         # For admin users, show distributed file status
         nodes = node_manager.get_all_nodes()
+        preview_urls = FileService.preview_urls(file_id, request_user)
         distributed_files = [
             {
                 "status": node.check_file_status(file_metadata.file_name),
-                "file_url": f"http://{node.access_url}/{file_metadata.file_name}",
+                "file_url": preview_urls.get(node, ''),
                 "region": node.region,
             }
             for node in nodes

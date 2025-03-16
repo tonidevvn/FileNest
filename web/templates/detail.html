@@ -17,7 +17,18 @@
         </p>
 
         {% if request.user.is_staff %}
-        {% endif %}
+             {% for file in distributed_files %}
+                 <div class="my-2 w-fit px-5 bg-gray-400 text-white text-sm font-mono p-1 rounded-lg overflow-x-auto">
+                         {% if file.status == "Available" %}
+                            <span class="text-red-400 bg-black mr-2 rounded-sm"> ✅ {{ file.region }} </span>
+                         {% else %}
+                            <span class="text-red-400 bg-black mr-2 rounded-sm"> ❌ {{ file.region }} </span>
+                         {% endif %}
+
+                     <code class="select-all"> {{ file.file_url }}</code>
+                 </div>
+             {% endfor %}
+         {% endif %}
 
         <p class="font-semibold my-2">Size:
             <span class="text-gray-600">{{ file_metadata.file_size |filesizeformat }}</span>
@@ -49,7 +60,6 @@
             <thead>
                 <tr class="bg-gray-200">
                     <th class="border border-gray-300 px-4 py-2">Chunk No</th>
-                    <th class="border border-gray-300 px-4 py-2">Chunk Name</th>
                     <th class="border border-gray-300 px-4 py-2">Size</th>
                     <th class="border border-gray-300 px-4 py-2">Etag</th>
                 </tr>
@@ -57,7 +67,6 @@
             <tbody>
                 {% for chunk in chunks %}
                 <tr>
-                    <td class="border border-gray-300 px-4 py-2">{{ chunk.chunk_index }}</td>
                     <td class="border border-gray-300 px-4 py-2">{{ chunk.chunk_file }}</td>
                     <td class="border border-gray-300 px-4 py-2">{{ chunk.chunk_size|filesizeformat }}</td>
                     <td class="border border-gray-300 px-4 py-2">{{ chunk.etag }}</td>
@@ -75,7 +84,7 @@
             <p class="font-semibold my-2">File Preview:</p>
             <div class="flex">
                <div class="container__img-holder max-w-4/5 rounded-xl bg-gray-950/5 opacity-85 overflow-hidden p-sm">
-                   <img src="{{ file_metadata.file_url }}" alt="" class="w-80 rounded-xl p-1" />
+                   <img src="{{ download_url }}" alt="" class="w-80 rounded-xl p-1" />
                </div>
             </div>
             <div class="img-popup">

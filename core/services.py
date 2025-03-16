@@ -130,7 +130,6 @@ class FileService:
     def download_file(file_id: str, user: User) -> Union[HttpResponse, str]:
         """Download file from the least loaded node, returning a presigned URL."""
         file_obj = FileMetadata.objects.get(id=file_id)
-        file_obj = FileMetadata.objects.get(id=file_id)
         if file_obj.uploaded_by != user and not user.is_staff:
             raise PermissionDenied("Unauthorized access")
 
@@ -154,3 +153,23 @@ class FileService:
         else:
             # Handle error (e.g., MinIO not reachable)
             raise Exception("Could not generate presigned URL from least loaded node")
+
+
+    @staticmethod
+    def preview_urls(file_id: str, user: User) -> Union[HttpResponse, Dict]:
+        """Download file from the least loaded node, returning a presigned URL."""
+        file_obj = FileMetadata.objects.get(id=file_id)
+        if file_obj.uploaded_by != user and not user.is_staff:
+            raise PermissionDenied("Unauthorized access")
+
+        presigned_urls = {}
+
+        for node in node_manager.get_all_nodes():
+            # Generate presigned URL from the least loaded node's client
+            presigned_url = node.client.presigned_get_object(
+                node.bucket_name, file_obj.file_name
+            )
+            presigned_urls[node] = presigned_url
+
+        return presigned_urls
+
