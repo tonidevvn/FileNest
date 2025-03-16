@@ -69,6 +69,7 @@ services:
 
   setup:
     image: minio/mc
+    container_name: mc-setup
     depends_on:
       minio1:
         condition: service_healthy
@@ -96,6 +97,35 @@ services:
       # List the bucket contents
       echo 'Listing bucket contents:';
       mc ls minio1/bucket/;
+      "
+    networks:
+      - minio-network
+
+  mc-heal:
+    image: minio/mc
+    container_name: mc-heal
+    depends_on:
+      minio1:
+        condition: service_healthy
+      minio2:
+        condition: service_healthy
+      minio3:
+        condition: service_healthy
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: minioadmin
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set minio1 http://minio1:9000 admin minioadmin;
+      mc alias set minio2 http://minio2:9000 admin minioadmin;
+      mc alias set minio3 http://minio3:9000 admin minioadmin;
+
+      while true; do
+        mc admin heal --all-drives --verbose minio1/bucket;
+        mc admin heal --all-drives --verbose minio2/bucket;
+        mc admin heal --all-drives --verbose minio3/bucket;
+        sleep 10; # 1 minute = 60 seconds
+      done
       "
     networks:
       - minio-network
