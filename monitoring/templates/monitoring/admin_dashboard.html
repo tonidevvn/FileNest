@@ -1,4 +1,5 @@
 {% extends "admin/base_site.html" %}
+{% load monitoring_filters %}
 
 {% block title %}
     {{ block.super }} | Monitoring Dashboard
@@ -48,7 +49,7 @@
                 <tr>
                     <td>{{ file.file_name }}</td>
                     {% for node in nodes %}
-                    <td>{{ file.node_statuses|get_item:forloop.counter0 }}</td> {# Access status by index #}
+                    <td>{{ file.node_statuses|slice:forloop.counter0|last }}</td> {# Access status by index #}
                     {% endfor %}
                 </tr>
                 {% endfor %}

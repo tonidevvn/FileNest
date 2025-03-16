@@ -36,6 +36,10 @@ class Node:
         )
         print(f"Minio endpoint for client: {endpoint}")
 
+    @property
+    def is_healthy(self):
+        return self.check_health()
+
     def check_health(self):
         try:
             self.client.bucket_exists(self.bucket_name)
