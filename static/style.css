@@ -49,6 +49,16 @@ h6 {
   text-wrap: balance;
 }
 
+/* Fix navbar mobile menu to prevent content shifting */
+@media screen and (max-width: 1023px) {
+  .navbar-menu.is-active {
+    position: absolute;
+    width: 100%;
+    z-index: 30;
+    box-shadow: 0 8px 16px rgba(10, 10, 10, 0.1);
+  }
+}
+
 /* Image gallery styling */
 .container__img {
   max-width: 900px;
