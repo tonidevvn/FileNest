@@ -38,9 +38,8 @@ def minio_upload(file_obj):
         # For very small files, always use single-part upload
         if file_size < MIN_PART_SIZE:
             # Single part upload for small files
-            file_hash = hashlib.sha256()
-            for chunk in file_obj.chunks():
-                file_hash.update(chunk)
+            file_hash = hashlib.md5()
+            file_hash.update(file_obj.read())
             calculated_checksum = file_hash.hexdigest()
 
             # Reset file pointer to beginning
@@ -55,6 +54,9 @@ def minio_upload(file_obj):
             )
             file_url = f"{settings.MINIO_ACCESS_URL}/{file_name}"
 
+            # Compare calculated checksum with MinIO ETag
+            is_valid = result.etag.strip('"') == calculated_checksum
+
             return (
                 file_name,
                 file_url,
@@ -62,14 +64,10 @@ def minio_upload(file_obj):
                 1,
                 [],
                 calculated_checksum,
+                is_valid
             )
 
         elif hasattr(file_obj, "chunks"):  # Handle multipart uploads for larger files
-            # Calculate SHA256 checksum for multipart upload
-            file_hash = hashlib.sha256()
-            for chunk in file_obj.chunks():
-                file_hash.update(chunk)
-            calculated_checksum = file_hash.hexdigest()
 
             # Reset file pointer to beginning
             file_obj.seek(0)
@@ -87,6 +85,7 @@ def minio_upload(file_obj):
             buffer = bytearray()
 
             # Process chunks ensuring each part meets minimum size
+            md5_parts = []  # Store MD5 hashes of parts
             for chunk in file_obj.chunks():
                 buffer.extend(chunk)
 
@@ -95,6 +94,8 @@ def minio_upload(file_obj):
                 if len(buffer) >= MIN_PART_SIZE or (
                     file_obj.file.tell() == file_size and buffer
                 ):
+                    md5_parts.append(hashlib.md5(buffer))
+
                     part = client._upload_part(
                         settings.MINIO_BUCKET_NAME,
                         file_name,
@@ -117,18 +118,28 @@ def minio_upload(file_obj):
             print(
                 f"Multipart upload completed for: {file_name}, total parts: {len(parts)}"
             )
+
+            # Compute MD5 for the whole file using ETag-style hashing
+            digests = b''.join(m.digest() for m in md5_parts)
+            digests_md5 = hashlib.md5(digests)
+            multipart_md5 = '{}-{}'.format(digests_md5.hexdigest(), len(md5_parts))
+
+            # Compare calculated checksum with MinIO ETag
+            is_valid = result.etag.strip('"') == multipart_md5
+
             return (
                 file_name,
                 file_url,
                 result.etag,
                 len(parts),
                 parts,
-                calculated_checksum,
+                multipart_md5,
+                is_valid
             )
 
         else:  # Fallback for objects without chunks method
             # Calculate SHA256 checksum
-            file_hash = hashlib.sha256()
+            file_hash = hashlib.md5()
             file_data = file_obj.read()
             file_hash.update(file_data)
             calculated_checksum = file_hash.hexdigest()
@@ -145,6 +156,9 @@ def minio_upload(file_obj):
             )
             file_url = f"{settings.MINIO_ACCESS_URL}/{file_name}"
 
+            # Compare calculated checksum with MinIO ETag
+            is_valid = result.etag.strip('"') == calculated_checksum
+
             return (
                 file_name,
                 file_url,
@@ -152,12 +166,13 @@ def minio_upload(file_obj):
                 1,
                 [],
                 calculated_checksum,
+                is_valid
             )
 
     except minio.error.S3Error as e:
         error_message = f"-----------------MinIO upload failed: {e}"
         print(error_message)  # Consider using logging instead of print
-        return None, None, None, None, None, error_message  # Failure, return error
+        return None, None, None, None, None, None, error_message  # Failure, return error
 
 
 def minio_download(file_metadata, use_cache=False):

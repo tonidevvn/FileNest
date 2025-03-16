@@ -12,8 +12,6 @@ from django.http import HttpResponse
 
 from core.minio.node import node_manager
 from core.minio.storage import (
-    get_presigned_url,
-    minio_download,
     minio_remove,
     minio_upload,
 )
@@ -33,12 +31,12 @@ class FileService:
 
         if len(file_obj.name) > MAX_FILENAME_LENGTH:
             errors.append(
-                f"File name '{file_obj.name}' exceeds {MAX_FILENAME_LENGTH} characters."
+                f"File name exceeds {MAX_FILENAME_LENGTH} characters."
             )
 
         if file_obj.size > MAX_FILE_SIZE:
             errors.append(
-                f"File '{file_obj.name}' exceeds {MAX_FILE_SIZE / (1024 * 1024)}MB limit."
+                f"File size exceeds {MAX_FILE_SIZE / (1024 * 1024)}MB limit."
             )
 
         return errors
@@ -52,36 +50,40 @@ class FileService:
             raise ValueError(errors[0])
 
         # Upload to MinIO
-        file_name, file_url, etag, chunk_count, chunk_parts, checksum = minio_upload(
+        file_name, file_url, etag, chunk_count, chunk_parts, checksum, is_valid = minio_upload(
             file_obj
         )
 
-        # Create metadata record
-        file_metadata = FileMetadata.objects.create(
-            file_name=file_name,
-            file_url=file_url,
-            file_size=file_obj.size,
-            etag=etag,
-            location=settings.MINIO_BUCKET_NAME,
-            uploaded_by=user,
-            total_chunks=chunk_count,
-            content_type=file_obj.content_type,
-            checksum=checksum,
-        )
+        if not is_valid:
+            minio_remove(file_name)
+            raise ValueError('Integrity check failed! Please try again.')
+        else:
+            # Create metadata record
+            file_metadata = FileMetadata.objects.create(
+                file_name=file_name,
+                file_url=file_url,
+                file_size=file_obj.size,
+                etag=etag,
+                location=settings.MINIO_BUCKET_NAME,
+                uploaded_by=user,
+                total_chunks=chunk_count,
+                content_type=file_obj.content_type,
+                checksum=checksum,
+            )
 
-        chunks = []
-        if chunk_count > 1:
-            for i, chunk_part in enumerate(chunk_parts):
-                chunk = FileChunk.objects.create(
-                    file_metadata=file_metadata,
-                    chunk_index=i,
-                    chunk_file=chunk_part.part_number,
-                    chunk_size=chunk_part.size,
-                    etag=chunk_part.etag,
-                )
-                chunks.append(chunk)
+            chunks = []
+            if chunk_count > 1:
+                for i, chunk_part in enumerate(chunk_parts):
+                    chunk = FileChunk.objects.create(
+                        file_metadata=file_metadata,
+                        chunk_index=i,
+                        chunk_file=chunk_part.part_number,
+                        chunk_size=chunk_part.size,
+                        etag=chunk_part.etag,
+                    )
+                    chunks.append(chunk)
 
-        return file_metadata, chunks
+            return file_metadata, chunks
 
     @staticmethod
     def delete_file(file_id: str, user: User) -> None:

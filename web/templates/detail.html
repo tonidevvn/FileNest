@@ -38,10 +38,10 @@
         </p>
 
         <p class="font-semibold my-2">ETAG:
-            <span class="text-gray-600">{{ file_metadata.etag }}</span>
+            <code class="text-gray-600 bg-green-400 rounded px-1">{{ file_metadata.etag }}</code>
         </p>
-        <p class="font-semibold my-2">Checksum (SHA-256):
-            <span class="text-gray-600">{{ file_metadata.checksum }}</span>
+        <p class="font-semibold my-2">Checksum (MD5) ✅ :
+            <code class="text-gray-600 bg-green-400 rounded px-1">{{ file_metadata.checksum }} </code>
         </p>
 
         {% if request.user.is_staff %}
