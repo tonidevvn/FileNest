@@ -150,7 +150,7 @@ class FileService:
         )
         cache.set(cache_key, presigned_url, 3600)  # Cache for 1 hour
 
-        return f"Presigned URL generated, testing with GET request... (HEAD request failed previously)"
+        return presigned_url
 
     @staticmethod
     def preview_urls(file_id: str, user: User) -> Union[HttpResponse, Dict]:

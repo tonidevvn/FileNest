@@ -7,18 +7,17 @@ import minio
 from django.conf import settings
 from minio.api import Part
 
-# Configure MinIO client
-_client = minio.Minio(
-    endpoint=settings.MINIO_ENDPOINT,
-    access_key=settings.MINIO_ACCESS_KEY,
-    secret_key=settings.MINIO_SECRET_KEY,
-    secure=settings.MINIO_SECURE,
-)
+from core.minio.node import node_manager
 
 
 def minio_storage():
-    """Return the MinIO client instance."""
-    return _client
+    """Return MinIO client from the least loaded node."""
+    node = node_manager.get_least_loaded_node()
+    if not node:
+        print("No active MinIO nodes available.")
+        return None  # Or raise an exception if you prefer
+
+    return node.client
 
 
 def minio_upload(file_obj):
@@ -64,11 +63,10 @@ def minio_upload(file_obj):
                 1,
                 [],
                 calculated_checksum,
-                is_valid
+                is_valid,
             )
 
         elif hasattr(file_obj, "chunks"):  # Handle multipart uploads for larger files
-
             # Reset file pointer to beginning
             file_obj.seek(0)
 
@@ -120,9 +118,9 @@ def minio_upload(file_obj):
             )
 
             # Compute MD5 for the whole file using ETag-style hashing
-            digests = b''.join(m.digest() for m in md5_parts)
+            digests = b"".join(m.digest() for m in md5_parts)
             digests_md5 = hashlib.md5(digests)
-            multipart_md5 = '{}-{}'.format(digests_md5.hexdigest(), len(md5_parts))
+            multipart_md5 = "{}-{}".format(digests_md5.hexdigest(), len(md5_parts))
 
             # Compare calculated checksum with MinIO ETag
             is_valid = result.etag.strip('"') == multipart_md5
@@ -134,7 +132,7 @@ def minio_upload(file_obj):
                 len(parts),
                 parts,
                 multipart_md5,
-                is_valid
+                is_valid,
             )
 
         else:  # Fallback for objects without chunks method
@@ -166,13 +164,21 @@ def minio_upload(file_obj):
                 1,
                 [],
                 calculated_checksum,
-                is_valid
+                is_valid,
             )
 
     except minio.error.S3Error as e:
         error_message = f"-----------------MinIO upload failed: {e}"
         print(error_message)  # Consider using logging instead of print
-        return None, None, None, None, None, None, error_message  # Failure, return error
+        return (
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            error_message,
+        )  # Failure, return error
 
 
 def minio_download(file_metadata, use_cache=False):
@@ -208,13 +214,20 @@ def minio_remove(file_name):
 
 
 def get_presigned_url(file_name, expires_in=3600):
-    """Generate a presigned URL for a given file."""
-    client = minio_storage()
+    """Generate a presigned URL for a given file using the least loaded node."""
+    node = node_manager.get_least_loaded_node()
+    if not node:
+        print(
+            "No active MinIO nodes available."
+        )  # Log this instead of raising exception for now
+        return None
+
+    client = node.client  # Use client from the least loaded node
     try:
         url = client.presigned_get_object(
-            settings.MINIO_BUCKET_NAME, file_name, expires=timedelta(seconds=expires_in)
+            node.bucket_name, file_name, expires=timedelta(seconds=expires_in)
         )
         return url
     except minio.error.S3Error as e:
-        print(f"Error generating presigned URL: {e}")
+        print(f"Error generating presigned URL: {e} from node: {node.name}")
         return None
