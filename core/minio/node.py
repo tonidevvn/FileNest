@@ -76,9 +76,9 @@ class NodeManager:
     def get_least_loaded_node(self) -> Node:
         from core.minio.filestat import monitor_nodes_health  # Import here to avoid circular import
 
-        monitor_nodes_health()  # Update node loads before selecting
+        active_nodes, _ = monitor_nodes_health()  # Update node loads before selecting
 
-        active_nodes = self.get_active_nodes()
+        # active_nodes = self.get_active_nodes()
         if not active_nodes:
             return None
         return min(active_nodes, key=lambda node: node.load)

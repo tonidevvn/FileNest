@@ -57,16 +57,7 @@ def file_detail(request, file_id):
         download_url = FileService.download_file(file_id, request_user)
 
         # For admin users, show distributed file status
-        nodes = node_manager.get_all_nodes()
         preview_urls = FileService.preview_urls(file_id, request_user)
-        distributed_files = [
-            {
-                "status": node.check_file_status(file_metadata.file_name),
-                "file_url": preview_urls.get(node, ""),
-                "region": node.region,
-            }
-            for node in nodes
-        ]
 
         chunks = file_metadata.chunks.all() if file_metadata.total_chunks > 1 else None
         return render(
@@ -75,7 +66,7 @@ def file_detail(request, file_id):
             {
                 "file_metadata": file_metadata,
                 "chunks": chunks,
-                "distributed_files": distributed_files,
+                "distributed_files": preview_urls,
                 "download_url": download_url,  # Pass the download URL to the template
             },
         )

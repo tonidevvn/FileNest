@@ -153,19 +153,34 @@ class FileService:
         return presigned_url
 
     @staticmethod
-    def preview_urls(file_id: str, user: User) -> Union[HttpResponse, Dict]:
+    def preview_urls(file_id: str, user: User) -> Union[HttpResponse, List]:
         """Download file from the least loaded node, returning a presigned URL."""
         file_obj = FileMetadata.objects.get(id=file_id)
         if file_obj.uploaded_by != user and not user.is_staff:
             raise PermissionDenied("Unauthorized access")
 
-        presigned_urls = {}
+        presigned_urls = []
 
         for node in node_manager.get_all_nodes():
-            # Generate presigned URL from the least loaded node's client
-            presigned_url = node.client.presigned_get_object(
-                node.bucket_name, file_obj.file_name
-            )
-            presigned_urls[node] = presigned_url
+            try:
+                # Generate presigned URL from the least loaded node's client
+                presigned_url = node.client.presigned_get_object(
+                    node.bucket_name, file_obj.file_name
+                )
+                # Check if the file exists by making a HEAD request
+                response = requests.head(presigned_url, timeout=5)
+                file_status = response.status_code  # 200 if exists, 404 if not found
+
+                presigned_urls.append({
+                        "preview_url": presigned_url,
+                        "status": file_status,
+                        "region": node.region,
+                })
+            except:
+                presigned_urls.append({
+                    "preview_url": None,
+                    "status": 404,  # Assume 404 if there's an error
+                    "region": node.region,
+                })
 
         return presigned_urls

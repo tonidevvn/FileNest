@@ -102,12 +102,12 @@ class NodeStatistics:
 
 def monitor_nodes_health():
     """Periodically check and update health status of all nodes"""
-    active_nodes = 0
+    active_nodes = []
 
     for node in node_manager.nodes:
         is_healthy = node.check_health()
         if is_healthy:
-            active_nodes += 1
+            active_nodes.append(node)
         else:
             # Mark node as having high load if unhealthy
             with threading.Lock():
@@ -115,7 +115,8 @@ def monitor_nodes_health():
 
     # Log health status
     total_nodes = len(node_manager.nodes)
-    logger.info(f"Node health check: {active_nodes}/{total_nodes} nodes active")
+    total_active_nodes = len(active_nodes)
+    logger.info(f"Node health check: {total_active_nodes}/{total_nodes} nodes active")
 
     return active_nodes, total_nodes
 

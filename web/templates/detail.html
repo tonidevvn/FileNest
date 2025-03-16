@@ -9,99 +9,111 @@
         <h1 class="text-3xl font-bold mb-6 text-center">📎 Object Info</h1>
         <hr class="mb-4">
 
-        <p class="font-semibold my-2">Name: <span class="text-gray-600">{{ file_metadata.get_display_name }}</span></p>
-        <p class="font-semibold my-2">Location:
-            <span class="text-gray-600">
-                <i class="fa fa-hdd-o" aria-hidden="true"></i> <strong>Minio</strong>
-            </span>
-        </p>
+        {% if file_metadata %}
+            <p class="font-semibold my-2">Name: <span class="text-gray-600">{{ file_metadata.get_display_name }}</span></p>
+                <p class="font-semibold my-2">Location:
+                    <span class="text-gray-600">
+                        <i class="fa fa-hdd-o" aria-hidden="true"></i> <strong>Minio</strong>
+                    </span>
+                </p>
 
-        {% if request.user.is_staff %}
-             {% for file in distributed_files %}
-                 <div class="my-2 w-fit px-5 bg-gray-400 text-white text-sm font-mono p-1 rounded-lg overflow-x-auto">
-                         {% if file.status == "Available" %}
-                            <span class="text-red-400 bg-black mr-2 rounded-sm"> ✅ {{ file.region }} </span>
-                         {% else %}
-                            <span class="text-red-400 bg-black mr-2 rounded-sm"> ❌ {{ file.region }} </span>
-                         {% endif %}
+                {% if request.user.is_staff %}
+                     {% for file in distributed_files %}
+                         <div class="my-2 w-fit px-5 bg-gray-400 text-white text-sm font-mono p-1 rounded-lg overflow-x-auto">
+                                 {% if file.status|default:404 == 404 %}
+                                    <span class="text-red-400 bg-black mr-2 rounded-sm"> ❌ {{ file.region }} </span>
+                                 {% else %}
+                                    <span class="text-red-400 bg-black mr-2 rounded-sm"> ✅ {{ file.region }} </span>
+                                    <code class="select-all rounded px-1"> {{ file.preview_url }}</code>
+                                 {% endif %}
+                         </div>
+                     {% endfor %}
+                 {% endif %}
 
-                     <code class="select-all"> {{ file.file_url }}</code>
-                 </div>
-             {% endfor %}
-         {% endif %}
+                <p class="font-semibold my-2">Size:
+                    <span class="text-gray-600">{{ file_metadata.file_size |filesizeformat }}</span>
+                </p>
+                <p class="font-semibold my-2">Content-type:
+                    <span class="text-gray-600">{{ file_metadata.content_type }}</span>
+                </p>
 
-        <p class="font-semibold my-2">Size:
-            <span class="text-gray-600">{{ file_metadata.file_size |filesizeformat }}</span>
-        </p>
-        <p class="font-semibold my-2">Content-type:
-            <span class="text-gray-600">{{ file_metadata.content_type }}</span>
-        </p>
+                <p class="font-semibold my-2">ETAG:
+                    <code class="text-gray-600 bg-green-400 rounded px-1">{{ file_metadata.etag }}</code>
+                </p>
+                <p class="font-semibold my-2">Checksum (MD5) {% if file_metadata.etag != file_metadata.checksum %} 🚩{% else %} ✅ {% endif %} :
+                    <code class="text-gray-600 px-1 rounded {% if file_metadata.etag != file_metadata.checksum %} bg-red-400 {% else %} bg-green-400 {% endif %}">
+                        {{ file_metadata.checksum }}
+                    </code>
+                </p>
 
-        <p class="font-semibold my-2">ETAG:
-            <code class="text-gray-600 bg-green-400 rounded px-1">{{ file_metadata.etag }}</code>
-        </p>
-        <p class="font-semibold my-2">Checksum (MD5) {% if file_metadata.etag != file_metadata.checksum %} 🚩{% else %} ✅ {% endif %} :
-            <code class="text-gray-600 px-1 rounded {% if file_metadata.etag != file_metadata.checksum %} bg-red-400 {% else %} bg-green-400 {% endif %}">
-                {{ file_metadata.checksum }}
-            </code>
-        </p>
+                {% if request.user.is_staff %}
+                    <p class="font-semibold my-2">Uploaded By:
+                        <span class="text-gray-600">{{ file_metadata.uploaded_by }}</span>
+                    </p>
+                {% endif %}
+                <p class="font-semibold my-2">Last Modified:
+                    <span class="text-gray-600">{{ file_metadata.uploaded_at }}</span>
+                </p>
 
-        {% if request.user.is_staff %}
-            <p class="font-semibold my-2">Uploaded By:
-                <span class="text-gray-600">{{ file_metadata.uploaded_by }}</span>
-            </p>
+                {% if chunks %}
+                    <p class="font-semibold my-2" >Total Chunks:  <span class="text-gray-600">{{ file_metadata.total_chunks }}</span></p>
+
+                <table class="table-auto w-fit mt-4 border-collapse border border-gray-300">
+                    <thead>
+                        <tr class="bg-gray-200">
+                            <th class="border border-gray-300 px-4 py-2">Chunk No</th>
+                            <th class="border border-gray-300 px-4 py-2">Size</th>
+                            <th class="border border-gray-300 px-4 py-2">Etag</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for chunk in chunks %}
+                        <tr>
+                            <td class="border border-gray-300 px-4 py-2">{{ chunk.chunk_file }}</td>
+                            <td class="border border-gray-300 px-4 py-2">{{ chunk.chunk_size|filesizeformat }}</td>
+                            <td class="border border-gray-300 px-4 py-2">{{ chunk.etag }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="border border-gray-300 px-4 py-2 text-center">No chunks found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% endif %}
+
+                {% if file_metadata.is_image %}
+                    <p class="font-semibold my-2">File Preview:</p>
+                    <div class="flex">
+                       <div class="container__img-holder max-w-4/5 rounded-xl bg-gray-950/5 opacity-85 overflow-hidden p-sm">
+                           <img src="{{ download_url }}" alt="" class="w-80 rounded-xl p-1" />
+                       </div>
+                    </div>
+                    <div class="img-popup">
+                      <img src="" alt="Popup Image" class="rounded-xl p-1" >
+                      <div class="close-btn">
+                        <div class="bar"></div>
+                        <div class="bar"></div>
+                      </div>
+                    </div>
+                {% endif %}
+
+                <div class="flex gap-4 mt-4">
+                    <a href="{{ download_url }}" class="cursor-pointer bg-[#00d1b2] text-white px-4 py-2 rounded hover:text-blue-600" download="{{ file_metadata.file_name }}">Download</a>
+                    <button onclick="deleteFile('{{ file_metadata.id }}')" class="cursor-pointer bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700">Delete</button>
+                </div>
+        {% else %}
+            <script>
+              Swal.fire({
+                  icon: "error",
+                  title: "Oops...",
+                  text: "Somethings went wrong!",
+                  timer: 2000
+                });
+            </script>
+
         {% endif %}
-        <p class="font-semibold my-2">Last Modified:
-            <span class="text-gray-600">{{ file_metadata.uploaded_at }}</span>
-        </p>
 
-        {% if chunks %}
-            <p class="font-semibold my-2" >Total Chunks:  <span class="text-gray-600">{{ file_metadata.total_chunks }}</span></p>
-
-        <table class="table-auto w-fit mt-4 border-collapse border border-gray-300">
-            <thead>
-                <tr class="bg-gray-200">
-                    <th class="border border-gray-300 px-4 py-2">Chunk No</th>
-                    <th class="border border-gray-300 px-4 py-2">Size</th>
-                    <th class="border border-gray-300 px-4 py-2">Etag</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for chunk in chunks %}
-                <tr>
-                    <td class="border border-gray-300 px-4 py-2">{{ chunk.chunk_file }}</td>
-                    <td class="border border-gray-300 px-4 py-2">{{ chunk.chunk_size|filesizeformat }}</td>
-                    <td class="border border-gray-300 px-4 py-2">{{ chunk.etag }}</td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="4" class="border border-gray-300 px-4 py-2 text-center">No chunks found.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% endif %}
-
-        {% if file_metadata.is_image %}
-            <p class="font-semibold my-2">File Preview:</p>
-            <div class="flex">
-               <div class="container__img-holder max-w-4/5 rounded-xl bg-gray-950/5 opacity-85 overflow-hidden p-sm">
-                   <img src="{{ download_url }}" alt="" class="w-80 rounded-xl p-1" />
-               </div>
-            </div>
-            <div class="img-popup">
-              <img src="" alt="Popup Image" class="rounded-xl p-1" >
-              <div class="close-btn">
-                <div class="bar"></div>
-                <div class="bar"></div>
-              </div>
-            </div>
-        {% endif %}
-
-        <div class="flex gap-4 mt-4">
-            <a href="{{ download_url }}" class="cursor-pointer bg-green-500 text-white px-4 py-2 rounded hover:bg-green-700" download="{{ file_metadata.file_name }}">Download</a>
-            <button onclick="deleteFile('{{ file_metadata.id }}')" class="cursor-pointer bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700">Delete</button>
-        </div>
 
         <div class="text-center mt-6">
             <a href="{% url 'web:storage' %}" class="text-blue-500 underline">Back to Storage</a>

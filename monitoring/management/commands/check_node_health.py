@@ -7,4 +7,4 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         active_nodes, total_nodes = monitor_nodes_health()
-        self.stdout.write(self.style.SUCCESS(f'Successfully checked node health: {active_nodes}/{total_nodes} active nodes'))
+        self.stdout.write(self.style.SUCCESS(f'Successfully checked node health: {active_nodes.count}/{total_nodes} active nodes'))
