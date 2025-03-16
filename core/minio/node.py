@@ -47,9 +47,8 @@ class Node:
     def check_file_status(self, file_name):
         """Check if the file URL is accessible (status 200)."""
         try:
-            url = f"http://{self.access_url}/{file_name}"
-            response = requests.head(url, timeout=2)  # Use HEAD request for efficiency
-            if response.status_code == 200:
+            response = self.client.stat_object(self.bucket_name, file_name)
+            if response.size > 0:
                 return "Available"
             else:
                 return "Not found"
