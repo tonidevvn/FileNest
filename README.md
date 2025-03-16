@@ -1,5 +1,9 @@
 # FileNest Project Setup Guide
 
+FileNest is a distributed file storage system designed for efficiently handling large files and ensuring data redundancy. It utilizes a chunking mechanism to break down files, distributes these chunks across multiple storage nodes (MinIO), and optimizes file retrieval based on geographic location and node load. This system is built to be scalable, reliable, and user-friendly, providing both a robust backend and an intuitive web interface for file management.
+
+# Project Features
+
 ## Prerequisites
 
 Ensure you have the following installed on your machine:
@@ -23,14 +27,39 @@ Docker
 | ✅ Done       | Distributed storage system integration using MinIO   |
 | ✅ Done       | File replication for redundancy and data integrity   |
 | ✅ Done       | Error detection mechanisms such as checksums for file verification   |
-| 🔜  Ongoing  | Recovery mechanisms for handling failures or corrupted chunks  |
+| ✅ Done       | Recovery mechanisms for handling failures or corrupted chunks  |
 | ✅ Done       | Retrieval logic to fetch files from the nearest or least-loaded node  |
 | ✅ Done       | Caching strategies for frequently accessed files to improve performance  |
 | ✅ Done       | User-friendly interface for file uploads and downloads  |
 | ✅ Done       | Admin panel to monitor file distribution and node statuses  |
-| 🔜  Ongoing  | Logging and reporting functionalities to track file access and storage operations  |
+| ✅ Done       | Logging and reporting functionalities to track file access and storage operations  |
 | ✅ Done       | Secure authentication and authorization using API tokens  |
 
+
+## ✅ Done: Refactoring of Web Views
+
+The web views have been refactored to improve code organization and maintainability.
+The views are now organized into subfolders based on their functionality:
+
+- `web/views/admin`: Contains views related to admin functionalities.
+- `web/views/auth`: Contains views related to authentication (login, signup, logout).
+- `web/views/files`: Contains views related to file operations (upload, detail, delete, storage).
+
+This change improves the structure of the `web/views` directory, making it easier to navigate and manage the views.
+
+
+## ✅ Done: Code Organization
+
+To further improve the project structure, the `web/views` directory has been reorganized.
+Each view function is now located in its respective subfolder under `web/views`.
+For example:
+
+- Authentication views (`user_login`, `user_signup`, `user_logout`) are now in `web/views/auth/auth.py`.
+- File management views (`file_upload`, `file_detail`, `delete_file`, `load_storage`) are in `web/views/files/files.py`.
+- Admin views (`admin_dashboard`) are in `web/views/admin/admin.py`.
+
+The `web/views/__init__.py` file has been updated to import the views from these subfolders.
+This modular structure enhances code discoverability and maintainability.
 
 ## Retrieval Optimization Features
 

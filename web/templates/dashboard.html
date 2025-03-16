@@ -27,11 +27,12 @@
                 <i class="fa fa-database mr-1"></i> Bucket hosted by MinIO
                 <span class="text-gray-500">- {{ total }} objects</span>
             </h3>
-
-            <table class="sortable table-auto w-full my-4 border-collapse border border-gray-300">
-                <thead>
-                    <tr class="bg-gray-200">
-                        <th class="border border-gray-300 px-4 py-2">No</th>
+        
+            <div class="overflow-x-auto">
+                <table class="sortable table-auto w-full my-4 border-collapse border border-gray-300">
+                    <thead>
+                        <tr class="bg-gray-200">
+                            <th class="border border-gray-300 px-4 py-2">No</th>
                         <th class="border border-gray-300 px-4 py-2">File Name</th>
                         <th class="border border-gray-300 px-4 py-2">Uploader</th>
                         <th class="border border-gray-300 px-4 py-2">Total Chunks</th>
@@ -70,7 +71,8 @@
                                 <i class="fa fa-trash-o"></i>
                             </button>
                             {% if upload.total_chunks > 1 %}
-                                <button onclick="window.location.href='{% url 'web:detail' upload.id %}'"
+                                {% url 'web:detail' upload.id as detail_url %}
+                                <button onclick="window.location.href='{{ detail_url }}'"
                                         class="cursor-pointer w-12 bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600">
                                     <i class="fa fa-th-list"></i>
                                 </button>

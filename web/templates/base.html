@@ -71,47 +71,40 @@
             </div>
           </div>
         </nav>
-                                <div class="fixed inset-0 z-40 hidden h-full w-full bg-black/50 backdrop-blur-sm peer-checked:block"> &nbsp; </div>
-                                <div class="fixed top-0 right-0 z-40 h-full w-full translate-x-full overflow-y-auto overscroll-y-none transition duration-500 peer-checked:translate-x-0">
-                                    <div class="float-right min-h-full w-[85%] bg-white px-6 pt-12 shadow-2xl">
-                                        <menu>
-                                            <li class="my-10">
-                                                <a href="/" class="text-2xl hover:text-blue-400">➥ Home</a>
-                                            </li>
-                                            <li class="my-10">
-                                                <a href="{% url 'web:upload' %}" class="text-2xl hover:text-blue-400"> ➥ Upload</a>
-                                            </li>
-                                            <li class="my-10">
-                                                <a href="{% url 'web:storage' %}" class="text-2xl hover:text-blue-400"> ➥ Storage</a>
-                                            </li>
-                                            <li class="my-10">
-                                                <a href="{% url 'web:logout' %}" class="text-2xl hover:text-blue-400"> ➥ Sign out</a>
-                                            </li>
-                                        </menu>
-                                    </div>
-                                </div>
-                            </label>
-                        </div>
-                    </aside>
-                </div>
-            </div>
-        </nav>
         <section class="container mx-auto py-8"> {% block content %}{% endblock %} </section>
         <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
         <script>
             document.addEventListener("DOMContentLoaded", function() {
+                // Get all "navbar-burger" elements
+                const $navbarBurgers = Array.prototype.slice.call(document.querySelectorAll('.navbar-burger'), 0);
+
+                // Add a click event on each of them
+                $navbarBurgers.forEach(el => {
+                    el.addEventListener('click', () => {
+                        // Get the target from the "data-target" attribute
+                        const target = el.dataset.target;
+                        const $target = document.getElementById(target);
+
+                        // Toggle the "is-active" class on both the "navbar-burger" and the "navbar-menu"
+                        el.classList.toggle('is-active');
+                        $target.classList.toggle('is-active');
+                    });
+                });
+
+                // Dropdown functionality
                 const dropdownButton = document.getElementById("dropdownNavbarLink");
                 const dropdownMenu = document.getElementById("dropdownNavbar");
-                dropdownButton.addEventListener("click", function(event) {
-                    event.stopPropagation(); // Prevents clicking outside from closing immediately
-                    dropdownMenu.classList.toggle("hidden");
-                });
-                // Close dropdown when clicking outside
-                document.addEventListener("click", function(event) {
-                    if (!dropdownButton.contains(event.target) && !dropdownMenu.contains(event.target)) {
-                        dropdownMenu.classList.add("hidden");
-                    }
-                });
+                if (dropdownButton && dropdownMenu) {
+                    dropdownButton.addEventListener("click", function(event) {
+                        event.stopPropagation();
+                        dropdownMenu.classList.toggle("hidden");
+                    });
+                    document.addEventListener("click", function(event) {
+                        if (!dropdownButton.contains(event.target) && !dropdownMenu.contains(event.target)) {
+                            dropdownMenu.classList.add("hidden");
+                        }
+                    });
+                }
             });
         </script>
     </body>
