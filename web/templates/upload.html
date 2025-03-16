@@ -26,7 +26,7 @@
 
             <!-- Submission Buttons -->
             <div class="flex justify-center">
-                <button type="submit" hx-confirm="Some confirm text here" id="upload-button" class="flex justify-center w-32 mx-2 bg-blue-500 text-white py-2 rounded hover:bg-blue-700 cursor-pointer">
+                <button type="submit" hx-confirm="Some confirm text here" id="upload-button" class="flex justify-center w-32 mx-2 bg-blue-500 text-white py-2 rounded hover:bg-blue-700 cursor-pointer" style="margin-right: 16px">
                     Add
                     <img class="htmx-indicator pl-1 color-white"  src="{% static 'bars.svg' %}" />
                 </button>
@@ -46,6 +46,7 @@
             const fileInput = document.getElementById("file-upload");
             const fileList = document.getElementById("file-list");
             const cancelButton = document.getElementById("cancel-button");
+            const uploadResults = document.getElementById("upload-results");
 
             // Drag over effect
             dropZone.addEventListener("dragover", (event) => {
@@ -106,6 +107,7 @@
             cancelButton.addEventListener("click", function () {
                 fileList.innerHTML = ""; // Clear the file list
                 fileInput.value = ""; // Reset file input
+                uploadResults.innerHTML = "";  // Clear the file list
             });
         });
 
