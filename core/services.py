@@ -11,10 +11,7 @@ from django.core.paginator import Paginator
 from django.http import HttpResponse
 
 from core.minio.node import node_manager
-from core.minio.storage import (
-    minio_remove,
-    minio_upload,
-)
+from core.minio.storage import minio_remove, minio_upload
 
 from .models import FileChunk, FileMetadata
 
@@ -30,14 +27,10 @@ class FileService:
         errors = []
 
         if len(file_obj.name) > MAX_FILENAME_LENGTH:
-            errors.append(
-                f"File name exceeds {MAX_FILENAME_LENGTH} characters."
-            )
+            errors.append(f"File name exceeds {MAX_FILENAME_LENGTH} characters.")
 
         if file_obj.size > MAX_FILE_SIZE:
-            errors.append(
-                f"File size exceeds {MAX_FILE_SIZE / (1024 * 1024)}MB limit."
-            )
+            errors.append(f"File size exceeds {MAX_FILE_SIZE / (1024 * 1024)}MB limit.")
 
         return errors
 
@@ -50,13 +43,13 @@ class FileService:
             raise ValueError(errors[0])
 
         # Upload to MinIO
-        file_name, file_url, etag, chunk_count, chunk_parts, checksum, is_valid = minio_upload(
-            file_obj
+        file_name, file_url, etag, chunk_count, chunk_parts, checksum, is_valid = (
+            minio_upload(file_obj)
         )
 
         if not is_valid:
             minio_remove(file_name)
-            raise ValueError('Integrity check failed! Please try again.')
+            raise ValueError("Integrity check failed! Please try again.")
         else:
             # Create metadata record
             file_metadata = FileMetadata.objects.create(
@@ -140,12 +133,11 @@ class FileService:
         presigned_url = cache.get(cache_key)
 
         if presigned_url:
-            try:
-                response = requests.head(presigned_url)
-                if response.status_code == 200:
-                    return presigned_url
-            except requests.exceptions.RequestException:
-                pass
+            response = requests.get(presigned_url, stream=True)
+            status_code = response.status_code
+            response.close()  # Close stream to prevent full download
+            if status_code == 200:
+                return presigned_url
 
         # Get the least loaded node
         node = node_manager.get_least_loaded_node()
@@ -158,7 +150,7 @@ class FileService:
         )
         cache.set(cache_key, presigned_url, 3600)  # Cache for 1 hour
 
-        return presigned_url
+        return f"Presigned URL generated, testing with GET request... (HEAD request failed previously)"
 
     @staticmethod
     def preview_urls(file_id: str, user: User) -> Union[HttpResponse, Dict]:
