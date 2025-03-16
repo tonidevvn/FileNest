@@ -1,10 +1,9 @@
 import hashlib
-import io
-import os
 from datetime import timedelta
 
 import minio
 from django.conf import settings
+from django.utils.text import get_valid_filename
 from minio.api import Part
 
 from core.minio.node import node_manager
@@ -23,7 +22,7 @@ def minio_storage():
 def minio_upload(file_obj):
     """Upload a file to MinIO, handling both single and multipart uploads."""
     client = minio_storage()
-    file_name = file_obj.name
+    file_name = get_valid_filename(file_obj.name)
     file_size = file_obj.size
     content_type = file_obj.content_type
 

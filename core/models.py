@@ -1,5 +1,5 @@
 """Core models for FileNest."""
-
+import re
 import uuid
 
 from django.contrib.auth.models import User
@@ -47,8 +47,8 @@ class FileMetadata(models.Model):
 
     def get_display_name(self):
         """Get the original file name without the UUID prefix."""
-        parts = self.file_name.split("-", 1)
-        return parts[1] if len(parts) > 1 else self.file_name
+        short_name = re.sub(r"^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}-", "", self.file_name)
+        return short_name
 
 
 class FileChunk(models.Model):
