@@ -9,6 +9,7 @@
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Bubblegum+Sans&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
+        <link rel="stylesheet" type="text/css" href={% static 'bulma.min.css' %}>
         <link rel="stylesheet" type="text/css" href={% static 'style.css' %}>
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
@@ -18,73 +19,58 @@
         <script src="https://cdn.jsdelivr.net/gh/tofsjonas/sortable@latest/dist/sortable.min.js"></script>
     </head>
     <body class="bg-gray-100 relative min-h-screen">
-        <nav class="bg-blue-500 p-4 shadow-lg">
-            <div class="container mx-auto flex justify-between items-center">
-                <a href="/" class="text-white text-lg font-bold">
-                    <h1 class="text-3xl">FileNest</h1>
+        <nav class="navbar is-primary" role="navigation" aria-label="main navigation">
+          <div class="navbar-brand">
+            <a class="navbar-item" href="/">
+              <h1 class="title is-2 has-text-white">FileNest</h1>
+            </a>
+
+            <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navbarBasicExample">
+              <span aria-hidden="true"></span>
+              <span aria-hidden="true"></span>
+              <span aria-hidden="true"></span>
+            </a>
+          </div>
+
+          <div id="navbarBasicExample" class="navbar-menu">
+            <div class="navbar-start">
+              <a href="{% url 'web:upload' %}" class="navbar-item">
+                Upload
+              </a>
+
+              <a href="{% url 'web:storage' %}" class="navbar-item">
+                Storage
+              </a>
+            </div>
+
+            <div class="navbar-end">
+              <div class="navbar-item has-dropdown is-hoverable">
+                <a class="navbar-link">
+                   👤 {{ request.user.username }}
                 </a>
-                <div>
-                    <ul class="flex items-center md:space-x-2 mt-4 md:mt-0 md:text-sm md:font-medium max-sm:hidden md:flex">
-                        <li>
-                            <a href="{% url 'web:upload' %}" class="text-white px-4 text-lg">Upload</a>
-                        </li>
-                        <li>
-                            <a href="{% url 'web:storage' %}" class="text-white px-4 text-lg">Storage</a>
-                        </li>
-                        <li class="relative">
-                            <button id="dropdownNavbarLink" class="cursor-pointer text-white md:hover:bg-transparent pl-3 pr-4 py-2 md:p-0 font-medium flex items-center justify-between text-lg w-full md:w-auto"> 👤 {{ request.user.username }}
-                                <svg class="w-4 h-4 ml-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-                                </svg>
-                            </button>
-                            <!-- Dropdown menu -->
-                            <div id="dropdownNavbar" class="hidden absolute top-8 right-0 z-10 min-w-[180px] overflow-auto rounded-lg border border-slate-200 bg-white p-1.5 shadow-lg shadow-sm focus:outline-none">
-                                <ul class="py-1" aria-labelledby="dropdownLargeButton">
-                                    <li role="menuitem" class="cursor-pointer text-slate-800 flex w-full text-sm items-center rounded-md p-3 transition-all hover:bg-slate-100 focus:bg-slate-100 active:bg-slate-100">
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 text-slate-400">
-                                            <path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-5.5-2.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0ZM10 12a5.99 5.99 0 0 0-4.793 2.39A6.483 6.483 0 0 0 10 16.5a6.483 6.483 0 0 0 4.793-2.11A5.99 5.99 0 0 0 10 12Z" clip-rule="evenodd" />
-                                        </svg>
-                                        <a class="text-slate-800 font-medium ml-2" href="#"> My Profile </a>
-                                    </li>
-                                    <li role="menuitem" class="cursor-pointer text-slate-800 flex w-full text-sm items-center rounded-md p-3 transition-all hover:bg-slate-100 focus:bg-slate-100 active:bg-slate-100">
 
-                                        {% if request.user.is_staff %}
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 text-slate-400">
-                                                <path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0ZM8.94 6.94a.75.75 0 1 1-1.061-1.061 3 3 0 1 1 2.871 5.026v.345a.75.75 0 0 1-1.5 0v-.5c0-.72.57-1.172 1.081-1.287A1.5 1.5 0 1 0 8.94 6.94ZM10 15a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clip-rule="evenodd" />
-                                            </svg>
-                                            <a href="{% url 'web:dashboard' %}" class="text-slate-800 font-medium ml-2"> Dashboard </a>
-
-                                        {% else %}
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 text-slate-400">
-                                                <path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0ZM8.94 6.94a.75.75 0 1 1-1.061-1.061 3 3 0 1 1 2.871 5.026v.345a.75.75 0 0 1-1.5 0v-.5c0-.72.57-1.172 1.081-1.287A1.5 1.5 0 1 0 8.94 6.94ZM10 15a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clip-rule="evenodd" />
-                                            </svg>
-                                            <a class="text-slate-800 font-medium ml-2" href="#"> Help </a>
-                                        {% endif %}
-                                    </li>
-                                        {% if request.user.is_staff %}
-                                         <li role="menuitem" class="cursor-pointer text-slate-800 flex w-full text-sm items-center rounded-md p-3 transition-all hover:bg-slate-100 focus:bg-slate-100 active:bg-slate-100">
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 text-slate-400">
-                                                <path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0ZM8.94 6.94a.75.75 0 1 1-1.061-1.061 3 3 0 1 1 2.871 5.026v.345a.75.75 0 0 1-1.5 0v-.5c0-.72.57-1.172 1.081-1.287A1.5 1.5 0 1 0 8.94 6.94ZM10 15a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clip-rule="evenodd" />
-                                            </svg>
-                                            <a href="{% url 'monitoring:logs' %}" class="text-slate-800 font-medium ml-2"> Logs </a>
-                                         </li>
-                                        {% endif %}
-                                    <li role="menuitem" class="cursor-pointer text-slate-800 flex w-full text-sm items-center rounded-md p-3 transition-all hover:bg-slate-100 focus:bg-slate-100 active:bg-slate-100">
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 text-slate-400">
-                                            <path fill-rule="evenodd" d="M3 4.25A2.25 2.25 0 0 1 5.25 2h5.5A2.25 2.25 0 0 1 13 4.25v2a.75.75 0 0 1-1.5 0v-2a.75.75 0 0 0-.75-.75h-5.5a.75.75 0 0 0-.75.75v11.5c0 .414.336.75.75.75h5.5a.75.75 0 0 0 .75-.75v-2a.75.75 0 0 1 1.5 0v2A2.25 2.25 0 0 1 10.75 18h-5.5A2.25 2.25 0 0 1 3 15.75V4.25Z" clip-rule="evenodd" />
-                                            <path fill-rule="evenodd" d="M19 10a.75.75 0 0 0-.75-.75H8.704l1.048-.943a.75.75 0 1 0-1.004-1.114l-2.5 2.25a.75.75 0 0 0 0 1.114l2.5 2.25a.75.75 0 1 0 1.004-1.114l-1.048-.943h9.546A.75.75 0 0 0 19 10Z" clip-rule="evenodd" />
-                                        </svg>
-                                        <a href="{% url 'web:logout' %}" class="text-slate-800 font-medium ml-2"> Sign Out </a>
-                                    </li>
-                                </ul>
-                            </div>
-                        </li>
-                    </ul>
-                    <aside class="flex h-full w-1/2 flex-1 justify-end md:hidden">
-                        <div class="flex items-center">
-                            <label class="relative z-40 cursor-pointer px-3 py-6" for="mobile-menu">
-                                <input class="peer hidden" type="checkbox" id="mobile-menu" />
-                                <div class="relative z-50 block h-[1px] w-7 bg-black bg-transparent content-[''] before:absolute before:top-[-0.35rem] before:z-50 before:block before:h-full before:w-full before:bg-black before:transition-all before:duration-200 before:ease-out before:content-[''] after:absolute after:right-0 after:bottom-[-0.35rem] after:block after:h-full after:w-full after:bg-black after:transition-all after:duration-200 after:ease-out after:content-[''] peer-checked:bg-transparent before:peer-checked:top-0 before:peer-checked:w-full before:peer-checked:rotate-45 before:peer-checked:transform after:peer-checked:bottom-0 after:peer-checked:w-full after:peer-checked:-rotate-45 after:peer-checked:transform"></div>
+                <div class="navbar-dropdown">
+                  {% if request.user.is_staff %}
+                  <a href="{% url 'web:dashboard' %}" class="navbar-item">
+                    Dashboard
+                  </a>
+                  <a href="{% url 'monitoring:logs' %}" class="navbar-item">
+                    Logs
+                  </a>
+                  {% else %}
+                  <a href="#" class="navbar-item">
+                    Help
+                  </a>
+                  {% endif %}
+                  <hr class="navbar-divider">
+                  <a href="{% url 'web:logout' %}" class="navbar-item">
+                    Sign Out
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </nav>
                                 <div class="fixed inset-0 z-40 hidden h-full w-full bg-black/50 backdrop-blur-sm peer-checked:block"> &nbsp; </div>
                                 <div class="fixed top-0 right-0 z-40 h-full w-full translate-x-full overflow-y-auto overscroll-y-none transition duration-500 peer-checked:translate-x-0">
                                     <div class="float-right min-h-full w-[85%] bg-white px-6 pt-12 shadow-2xl">
