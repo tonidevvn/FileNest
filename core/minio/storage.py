@@ -25,7 +25,6 @@ def minio_upload(file_obj):
     file_name = get_valid_filename(file_obj.name)
     file_size = file_obj.size
     content_type = file_obj.content_type
-
     # Minimum part size for multipart uploads (5MB as per S3 specs)
     MIN_PART_SIZE = 5 * 1024 * 1024
 
@@ -33,39 +32,7 @@ def minio_upload(file_obj):
         client.make_bucket(settings.MINIO_BUCKET_NAME)
 
     try:
-        # For very small files, always use single-part upload
-        if file_size < MIN_PART_SIZE:
-            # Single part upload for small files
-            file_hash = hashlib.md5()
-            file_hash.update(file_obj.read())
-            calculated_checksum = file_hash.hexdigest()
-
-            # Reset file pointer to beginning
-            file_obj.seek(0)
-
-            result = client.put_object(
-                settings.MINIO_BUCKET_NAME,
-                file_name,
-                file_obj,
-                length=file_size,
-                content_type=content_type,
-            )
-            file_url = f"{settings.MINIO_ACCESS_URL}/{file_name}"
-
-            # Compare calculated checksum with MinIO ETag
-            is_valid = result.etag.strip('"') == calculated_checksum
-
-            return (
-                file_name,
-                file_url,
-                result.etag,
-                1,
-                [],
-                calculated_checksum,
-                is_valid,
-            )
-
-        elif hasattr(file_obj, "chunks"):  # Handle multipart uploads for larger files
+        if file_obj.multiple_chunks():  # Handle multipart uploads for larger files
             # Reset file pointer to beginning
             file_obj.seek(0)
 
@@ -134,11 +101,11 @@ def minio_upload(file_obj):
                 is_valid,
             )
 
-        else:  # Fallback for objects without chunks method
-            # Calculate SHA256 checksum
+        # For very small files, always use single-part upload
+        else:
+            # Single part upload for small files
             file_hash = hashlib.md5()
-            file_data = file_obj.read()
-            file_hash.update(file_data)
+            file_hash.update(file_obj.read())
             calculated_checksum = file_hash.hexdigest()
 
             # Reset file pointer to beginning

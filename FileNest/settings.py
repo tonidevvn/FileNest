@@ -68,6 +68,9 @@ AWS_S3_OBJECT_PARAMETERS = {"CacheControl": "max-age=86400"}
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
+# Threshold to treat a file as big
+FILE_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024  # 5 MB
+
 # Local Storage should be inside 'media/uploads/'
 LOCAL_STORAGE_URL = "media/uploads/"
 
