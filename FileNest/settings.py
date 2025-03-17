@@ -104,6 +104,7 @@ INSTALLED_APPS = [
     # Installed Packages
     "rest_framework",
     "rest_framework.authtoken",
+    'drf_yasg',
     "corsheaders",
     "storages",
     "web",
@@ -181,6 +182,17 @@ AUTH_PASSWORD_VALIDATORS = [
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
+
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'Bearer': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header'
+        }
+    },
+    'USE_SESSION_AUTH': False,
+}
 
 
 # Internationalization
