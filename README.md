@@ -139,3 +139,16 @@ Follow the prompts to access the app at: http://127.0.0.1:8000/
 python manage.py runserver
 ```
 
+## 🖼️ Screenshots
+
+![](Screenshots/FileNest_1.png)
+
+![](Screenshots/FileNest_2.png)
+
+![](Screenshots/FileNest_3.png)
+
+![](Screenshots/FileNest_4.png)
+
+![](Screenshots/FileNest_5.png)
+
+![](Screenshots/FileNest_6.png)
